@@ -80,3 +80,4 @@ data/*
 
 # Small documentation graphics displayed in the README.
 !docs/images/*.png
+!docs/images/*.svg
