@@ -1,0 +1,4 @@
+endpoint	unit	n	method	estimate_percent	ci95_low_percent	ci95_high_percent	comparison	effect_percent_points	effect_ci95_low_percent_points	effect_ci95_high_percent_points	test	p_value
+Historical drug-mean top-10% recovery	drug	177	MeTar	69.49152542372882	62.71186440677966	76.27118644067797						
+Historical drug-mean top-10% recovery	drug	177	PertKGE	28.24858757062147	21.468926553672315	35.02824858757062						
+Historical drug-mean top-10% recovery	drug	177					MeTar minus PertKGE	41.24293785310734	33.898305084745765	48.58757062146893	two-sided exact McNemar	3.975760896174872e-20

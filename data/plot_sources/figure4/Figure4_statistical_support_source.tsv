@@ -1,0 +1,15 @@
+statistic	value	display
+paired_profiles	4463.0	4,463 paired profiles
+paired_drug_cell_units	651.0	651 paired drug-cell units
+paired_drug_units	177.0	177 paired drugs
+strict_pairing_exclusions	0.0	0 numeric-pairing exclusions
+metar_candidate_universe	16583.0	MeTar native universe: 16,583 genes
+pertkge_candidate_universe	19556.0	PertKGE native universe: 19,556 proteins
+profile_top5_mcnemar_p	4.6694420147235264e-117	profile top-5 McNemar P = 4.7e-117
+profile_wilcoxon_p	3.743552287861253e-259	profile Wilcoxon P = 3.7e-259
+profile_top5_recovery	0.3269101501232355	profile top-5: 32.7% vs 19.5%
+drug_cell_top10_recovery	0.6267281105990783	drug-cell top-10: 62.7% vs 24.3%
+drug_cell_metar_earlier	454.0	MeTar earlier in 454/651 drug-cell units
+drug_top5_recovery	0.4011299435028249	drug top-5: 40.1% vs 26.6%
+drug_level_metar_better	118.0	MeTar earlier in 118/177 drugs
+drug_median_percentile	5.63830428752336	drug median percentile: 5.6% vs 30.1%

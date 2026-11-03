@@ -1,0 +1,7 @@
+combo_code	A549_recovered_top10	SW480_recovered_top10	NCI-H460_recovered_top10	top5_only_drugs	top10_present_drugs	unrecovered_drugs	total_drugs
+111	1	1	1	15	2	0	17
+000	0	0	0	0	0	5	5
+011	0	1	1	1	1	0	2
+101	1	0	1	1	1	0	2
+110	1	1	0	2	0	0	2
+100	1	0	0	0	2	0	2

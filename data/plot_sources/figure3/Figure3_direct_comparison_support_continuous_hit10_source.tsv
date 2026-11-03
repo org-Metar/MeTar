@@ -1,0 +1,43 @@
+cell_line	sample_bin	support_groups	n_groups	n_profiles	method_label	Hit@10_pct
+HUES3	small_<=64_support_groups	26	3	18	MeTar direct	66.66666666666666
+HUES3	small_<=64_support_groups	26	3	18	PertKGE	0.0
+HUES3	small_<=64_support_groups	26	3	18	SSGCN	0.0
+NCIH841	small_<=64_support_groups	62	12	33	MeTar direct	50.0
+NCIH841	small_<=64_support_groups	62	12	33	PertKGE	16.66666666666666
+NCIH841	small_<=64_support_groups	62	12	33	SSGCN	25.0
+XC.P909	small_<=64_support_groups	62	12	35	MeTar direct	58.333333333333336
+XC.P909	small_<=64_support_groups	62	12	35	PertKGE	16.66666666666666
+XC.P909	small_<=64_support_groups	62	12	35	SSGCN	58.333333333333336
+XC.P910	small_<=64_support_groups	62	12	35	MeTar direct	58.333333333333336
+XC.P910	small_<=64_support_groups	62	12	35	PertKGE	16.66666666666666
+XC.P910	small_<=64_support_groups	62	12	35	SSGCN	50.0
+HT115	medium_65_256_support_groups	138	32	32	MeTar direct	28.125
+HT115	medium_65_256_support_groups	138	32	32	PertKGE	15.625
+HT115	medium_65_256_support_groups	138	32	32	SSGCN	12.5
+NCIH1694	medium_65_256_support_groups	139	32	32	MeTar direct	25.0
+NCIH1694	medium_65_256_support_groups	139	32	32	PertKGE	12.5
+NCIH1694	medium_65_256_support_groups	139	32	32	SSGCN	6.25
+SKLU1	medium_65_256_support_groups	140	33	33	MeTar direct	24.24242424242424
+SKLU1	medium_65_256_support_groups	140	33	33	PertKGE	12.12121212121212
+SKLU1	medium_65_256_support_groups	140	33	33	SSGCN	18.18181818181818
+SNGM	medium_65_256_support_groups	140	33	33	MeTar direct	33.33333333333333
+SNGM	medium_65_256_support_groups	140	33	33	PertKGE	12.12121212121212
+SNGM	medium_65_256_support_groups	140	33	33	SSGCN	9.09090909090909
+LOVO	medium_65_256_support_groups	142	33	33	MeTar direct	30.303030303030297
+LOVO	medium_65_256_support_groups	142	33	33	PertKGE	12.12121212121212
+LOVO	medium_65_256_support_groups	142	33	33	SSGCN	15.151515151515149
+RMUGS	medium_65_256_support_groups	142	33	33	MeTar direct	33.33333333333333
+RMUGS	medium_65_256_support_groups	142	33	33	PertKGE	12.12121212121212
+RMUGS	medium_65_256_support_groups	142	33	33	SSGCN	21.21212121212121
+HELA	large_>256_support_groups	737	173	2512	MeTar direct	34.10404624277457
+HELA	large_>256_support_groups	737	173	2512	PertKGE	23.12138728323699
+HELA	large_>256_support_groups	737	173	2512	SSGCN	19.07514450867052
+HCC515	large_>256_support_groups	1252	310	953	MeTar direct	28.064516129032256
+HCC515	large_>256_support_groups	1252	310	953	PertKGE	15.806451612903219
+HCC515	large_>256_support_groups	1252	310	953	SSGCN	16.4516129032258
+VCAP	large_>256_support_groups	1262	321	1067	MeTar direct	27.414330218068528
+VCAP	large_>256_support_groups	1262	321	1067	PertKGE	18.06853582554517
+VCAP	large_>256_support_groups	1262	321	1067	SSGCN	16.199376947040488
+HT29	large_>256_support_groups	1675	413	2905	MeTar direct	32.20338983050847
+HT29	large_>256_support_groups	1675	413	2905	PertKGE	14.28571428571428
+HT29	large_>256_support_groups	1675	413	2905	SSGCN	16.707021791767552

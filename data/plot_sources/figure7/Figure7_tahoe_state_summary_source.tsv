@@ -1,0 +1,8 @@
+state	count	group
+top5_in_all_three	15	single_cell_pattern
+context_specific_top10	8	single_cell_pattern
+missed_top10	5	single_cell_pattern
+top10_in_all_three	2	single_cell_pattern
+top5	21	consensus_rank
+missed_top10	7	consensus_rank
+top10_only	2	consensus_rank

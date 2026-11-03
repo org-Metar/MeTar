@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "repository": "org-Metar/MeTar",
+  "tag": "artifacts-20261102",
+  "release_url": "https://github.com/org-Metar/MeTar/releases/tag/artifacts-20261102",
+  "visibility": "public",
+  "artifact_snapshot": "Selected models and computational reproduction inputs",
+  "artifact_root": "metar_artifacts",
+  "archives": [
+    {
+      "name": "models_and_representations.tar.gz",
+      "bytes": 237979963,
+      "sha256": "850672fd77989369267d201935f506aaff663a84c4a242f7b2a59e6f0a3159f0",
+      "purpose": "Selected pretrained weights, target embeddings, preprocessing state and protocol locks"
+    },
+    {
+      "name": "runtime_sources.tar.gz",
+      "bytes": 286263,
+      "sha256": "138e1297f8c3f9f7b6bc48064d71f7b20bab81fe899e397df54d068ccf7bb948",
+      "purpose": "Selected training and evaluation runtime sources with the metadata read by supported workflows."
+    },
+    {
+      "name": "result_data.tar.gz",
+      "bytes": 122697569,
+      "sha256": "6670079c8c9fb3639fd27a5d685def86de5fc7938e940c7d828c7443350013fc",
+      "purpose": "Model scores and numerical source tables used by computational result reproduction."
+    },
+    {
+      "name": "application_inputs.tar.gz",
+      "bytes": 7245700,
+      "sha256": "1f3870c13b17adefec10c447d76a06fc202905e006a68b14f9d44d5d8b528651",
+      "purpose": "Processed PDF-3 RNA-seq input and ordered candidate identifiers for target prediction."
+    },
+    {
+      "name": "figure_assets.tar.gz",
+      "bytes": 5124718,
+      "sha256": "c4134a907c4787ed7143a11728f4dda9c012c73bbd1a51bc99724941431c54e9",
+      "purpose": "Native diagram exports and vector baselines for supported computational figure assembly."
+    },
+    {
+      "name": "tahoe_projection.tar.gz",
+      "bytes": 3177137,
+      "sha256": "6d59541b0be343bf4a6faf93d0808e6b0bbab818d8494d81bdf96f486af7d6a1",
+      "purpose": "Fitted Tahoe highly variable gene selection and 128-dimensional SVD projection for single-cell preprocessing."
+    },
+    {
+      "name": "training_inputs.tar.gz",
+      "bytes": 40223415,
+      "sha256": "f8ef88898a5415cdbe087151f625d97ecc22f7a683f6ea5054e94cc3632660e6",
+      "purpose": "Byte-preserved selected Round210 PC3 response/score tables and gene-relation graph required by scratch training"
+    }
+  ],
+  "external_inputs": "manifests/pretrained_artifact_contract.json",
+  "limits": [
+    "Public upstream LINCS, Tahoe, STRING and ProteomicsDB inputs must be obtained separately as described in docs/data.md.",
+    "Scratch training additionally requires the inputs documented in docs/training.md."
+  ],
+  "plotting_asset_root": "data/plot_assets",
+  "tahoe_preprocessing_root": "data/preprocessing/tahoe"
+}

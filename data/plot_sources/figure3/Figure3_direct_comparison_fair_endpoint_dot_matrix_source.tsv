@@ -1,0 +1,16 @@
+method	raw_method	metric	value_pct	comparison_role
+MeTar direct	Round246 no-adapt	Hit@10	37.81833835470273	main_fair_no_support_adaptation
+MeTar direct	Round246 no-adapt	NDCG@10	23.175427612287592	main_fair_no_support_adaptation
+MeTar direct	Round246 no-adapt	MeanAP	21.01074282481257	main_fair_no_support_adaptation
+MeTar direct	Round246 no-adapt	Hit@50	61.52613437704152	main_fair_no_support_adaptation
+MeTar direct	Round246 no-adapt	AUROC	81.02964802597678	main_fair_no_support_adaptation
+SSGCN	SSGCN	Hit@10	20.29663236574295	main_external_comparator
+SSGCN	SSGCN	MeanAP	10.86912785584862	main_external_comparator
+SSGCN	SSGCN	NDCG@10	11.687957049025693	main_external_comparator
+SSGCN	SSGCN	Hit@50	49.90941542904324	main_external_comparator
+SSGCN	SSGCN	AUROC	74.33305005300656	main_external_comparator
+PertKGE	Round307 PertKGE	Hit@10	14.13513839230344	main_external_comparator
+PertKGE	Round307 PertKGE	MeanAP	6.260411851431261	main_external_comparator
+PertKGE	Round307 PertKGE	NDCG@10	6.42358408619532	main_external_comparator
+PertKGE	Round307 PertKGE	Hit@50	39.63415091288385	main_external_comparator
+PertKGE	Round307 PertKGE	AUROC	74.18487232306556	main_external_comparator

@@ -1,0 +1,3 @@
+dataset	independent_unit	n_independent_units	repeat_dimension	n_repeats_per_unit	n_display_outputs	display_role	inferential_role
+LINCS	drug	415	model_seed	3	1245	repeated_descriptive_outputs	independent_denominator_is_415_drugs
+Tahoe	drug	30	none	1	30	independent_drug_outputs	independent_denominator_is_30_drugs

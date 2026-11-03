@@ -1,0 +1,386 @@
+{
+  "schema_version": 1,
+  "default_data_root": "data/plot_sources",
+  "dependencies": [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "Pillow",
+    "PyMuPDF",
+    "scipy"
+  ],
+  "font": "Arial (supply --font-dir if not installed)",
+  "render_entries": [
+    {
+      "id": "fig2",
+      "title": "Figure 2: current source assembly",
+      "renderer": "assembly:2",
+      "scripts": [
+        "figures/manuscript/main/figure2_assembly.py"
+      ],
+      "inputs": [],
+      "external_assets": [
+        {
+          "name": "Figure2_baseline.pdf",
+          "sha256": "52413c86143e60d109d430a98724cb26771dbc9efb09b947c8eb4626d58115ec",
+          "bytes": 238574,
+          "role": "Locked baseline retaining b-g and the original protected diagram content"
+        },
+        {
+          "name": "Figure2a_editable.pdf",
+          "sha256": "9a021d3f84f73bcc032dbc7b96efaef05fd48d683621068ca5e775352919ab60",
+          "bytes": 121622,
+          "role": "Native source-panel export after accepted header geometry edit"
+        },
+        {
+          "name": "Figure2a_editable.pptx",
+          "sha256": "090d6ac49fc46b9915643a49a1adaf3f68acaf28ef1dc55232cb027110ab244c",
+          "bytes": 166638,
+          "role": "Editable native schematic with original chart data"
+        }
+      ],
+      "scope": "October14 accepted a-g full assembly; exact original header-region replacement and panel scaling. Statistical b-g values are retained in the locked vector baseline; current Fig2g also has a source-table render route."
+    },
+    {
+      "id": "fig2g",
+      "title": "Figure 2g: MOA and remaining-candidate target-family composition",
+      "renderer": "fig2g",
+      "scripts": [
+        "figures/manuscript/figure2/statistical_panel_style.py",
+        "figures/manuscript/figure2/family_composition.py",
+        "figures/manuscript/figure2/panel_layout.py"
+      ],
+      "inputs": [
+        "data/plot_sources/figure2g/moa_family_heatmap.tsv",
+        "data/plot_sources/figure2g/family_cluster_permutation.tsv",
+        "data/plot_sources/figure2g/correspondence_summary.json"
+      ],
+      "external_assets": [],
+      "scope": "October display: eight family rows, six MOA columns; 48 cells and four BH-significant marks. Retains existing pure-cohort ratios and q values; no permutations are recomputed."
+    },
+    {
+      "id": "fig3",
+      "title": "Figure 3: current six-panel a-f assembly",
+      "renderer": "fig3",
+      "scripts": [
+        "figures/manuscript/figure3/build_figure.py",
+        "figures/manuscript/figure3/statistical_panels.py",
+        "figures/manuscript/figure3/recovery.py",
+        "figures/manuscript/figure3/rendering_style.json"
+      ],
+      "inputs": [
+        "data/plot_sources/figure3/adapted_drugcell_recovery.tsv",
+        "data/plot_sources/figure3/compound_recovery.tsv",
+        "data/plot_sources/figure3/excluded_single_context_compounds.tsv",
+        "data/plot_sources/figure3/Figure3b_paired_delta_long.tsv",
+        "data/plot_sources/figure3/Figure3b_paired_delta_summary.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_adaptation_delta_summary_source.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_endpoint_estimates_95ci_source.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_fair_endpoint_dot_matrix_source.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_fair_per_cell_hit10_source.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_support_continuous_hit10_source.tsv",
+        "data/plot_sources/figure3/Figure3_direct_comparison_support_strata_summary_source.tsv",
+        "data/plot_sources/figure3/grouped_recovery_summary.tsv"
+      ],
+      "external_assets": [
+        {
+          "name": "Figure3_20261019.pdf",
+          "sha256": "023b9295c97a0b87247d9d9eea33cdc478d414be3af3c81caea1be9ca5f84708",
+          "role": "Frozen native vector panel a, cropped from formal October 19 baseline"
+        }
+      ],
+      "scope": "Six-panel a-f assembly. Panel a uses the editable diagram export; b-f use the supplied numerical tables."
+    },
+    {
+      "id": "fig3f",
+      "title": "Figure 3f: compound-weighted adapted recovery",
+      "renderer": "fig3f",
+      "scripts": [
+        "figures/manuscript/figure3/recovery.py"
+      ],
+      "inputs": [
+        "data/plot_sources/figure3/grouped_recovery_summary.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Exact final f geometry/letter from the six-panel assembly: 415 compounds in 108/198/109 context groups, top-10 and top-30. Renders the archived summary without recomputing inference or intervals."
+    },
+    {
+      "id": "fig4",
+      "title": "Figure 4: current source assembly",
+      "renderer": "assembly:4",
+      "scripts": [
+        "figures/manuscript/main/figure4_assembly.py"
+      ],
+      "inputs": [],
+      "external_assets": [
+        {
+          "name": "Figure4_baseline.pdf",
+          "sha256": "2fb74a5ae113fd735c1230f7fb5226309ef375912be9893f06ac2ab2c4ca2a24",
+          "bytes": 1601160,
+          "role": "Accepted prepatch native composite preserving all statistical plots"
+        },
+        {
+          "name": "Figure4a_editable.pdf",
+          "sha256": "d2a287dec67197e699b4321814f68de88cd070fef8607fa29e8af110e32dbb33",
+          "bytes": 216723,
+          "role": "Accepted schematic source export"
+        },
+        {
+          "name": "Figure4a_editable.pptx",
+          "sha256": "56d73dc802a4f7026d9206818e804dcc412b9ed07c7d22a9c5bc29503e681515",
+          "bytes": 229971,
+          "role": "Editable native schematic"
+        }
+      ],
+      "scope": "October19 accepted current composite: exact native panel-a replacement and 0.55mm legend-text adjustment; original plot data/geometry are reused without recomputation."
+    },
+    {
+      "id": "fig5",
+      "title": "Figure 5: current source assembly",
+      "renderer": "assembly:5",
+      "scripts": [
+        "figures/manuscript/main/figure5_assembly.py"
+      ],
+      "inputs": [],
+      "external_assets": [
+        {
+          "name": "Figure5_baseline.pdf",
+          "sha256": "47f3d8a76f2067667e6d687a999043fc2e5304bc930d09562c44521d285a7763",
+          "bytes": 533130,
+          "role": "Accepted statistical/vector baseline whose exact xref is patched"
+        },
+        {
+          "name": "Figure5a_editable.pptx",
+          "sha256": "b14e64310cd93ffff4570e408f8a8e1abf31b4ca0b27604d432fb669400d62ca",
+          "bytes": 100757,
+          "role": "Approved native editable schematic/PowerPoint source"
+        }
+      ],
+      "scope": "October19 accepted exact PDF stream patch of two axis labels; archived statistical geometry, native diagram and values stay bound to their locked source composite."
+    },
+    {
+      "id": "fig6",
+      "title": "Figure 6: current source assembly",
+      "renderer": "assembly:6",
+      "scripts": [
+        "figures/manuscript/main/figure6_assembly.py"
+      ],
+      "inputs": [],
+      "external_assets": [
+        {
+          "name": "Figure6_baseline.pdf",
+          "sha256": "646c2bda6b5ba375cc3d979539c9085e2f547af257f6a78c758cfa58734b1354",
+          "bytes": 102085,
+          "role": "Accepted baseline before the repaired source-panel resource replacement"
+        },
+        {
+          "name": "Figure6a_editable.pdf",
+          "sha256": "eed7101cfa4188d90af81750354f2cadf6a2876e76ffa042a7e4789b29d06cb6",
+          "bytes": 76047,
+          "role": "Undamaged native panel-a source export used in the final accepted repair"
+        },
+        {
+          "name": "Figure6a_review_20261019_editable.pptx",
+          "sha256": "a113b8c5f90431a1eab3d205f0579fcf757c46358cd8907e5d95fb936bfa2ac5",
+          "bytes": 16713,
+          "role": "Native editable source from accepted repair"
+        }
+      ],
+      "scope": "October19 accepted damage-corrected source: exact resource replacement of full panel a and xlabel update; preserves original statistical plots and protected content."
+    },
+    {
+      "id": "fig7",
+      "title": "Figure 7: current full source-table render",
+      "renderer": "current:7",
+      "scripts": [
+        "figures/manuscript/main/figure7.py"
+      ],
+      "inputs": [
+        "data/plot_sources/figure7/Figure7_lincs_hitk_curve_source.tsv",
+        "data/plot_sources/figure7/Figure7_lincs_rank_pair_source.tsv",
+        "data/plot_sources/figure7/Figure7_lincs_recallk_curve_source.tsv",
+        "data/plot_sources/figure7/Figure7_lincs_state_summary_source.tsv",
+        "data/plot_sources/figure7/Figure7_tahoe_hitk_curve_source.tsv",
+        "data/plot_sources/figure7/Figure7_tahoe_rank_pair_source.tsv",
+        "data/plot_sources/figure7/Figure7_tahoe_recallk_curve_source.tsv",
+        "data/plot_sources/figure7/Figure7_tahoe_state_summary_source.tsv",
+        "figures/manuscript/figure3/rendering_style.json"
+      ],
+      "external_assets": [],
+      "scope": "Current October12 spacing source carried unchanged into accepted October19 delivery. Full table-to-plot route retains eight R496 sources, curve/scatter geometry, seeded point jitter and exact top-crop policy; no inference."
+    },
+    {
+      "id": "supp1",
+      "title": "Supplementary Figure 1",
+      "renderer": "legacy:1",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_legacy.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/legacy/supplementary_fig_01/S4-L002.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_01/S4-L003.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_01/S4-L004.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_01/S4-L005.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied direct-prediction analysis tables."
+    },
+    {
+      "id": "supp2",
+      "title": "Supplementary Figure 2",
+      "renderer": "legacy:2",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_legacy.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/legacy/supplementary_fig_02/S4-L011.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_02/S4-L010.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_02/S4-L013.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_02/S4-L014.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied direct-prediction analysis tables."
+    },
+    {
+      "id": "supp3",
+      "title": "Supplementary Figure 3: closed-label masking",
+      "renderer": "legacy:3",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_legacy.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/legacy/recovered_originals/Figure3_cluster_bootstrap_curve.tsv",
+        "data/plot_sources/supplementary/legacy/recovered_originals/Figure3_cluster_bootstrap_top5.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Archived 20,000 whole-drug-cluster bootstrap intervals, seed 20260713, 177 clusters; draws are not rerun. Includes the two accepted October19 terminology edits: Full 16,583-gene target space; Full / target space. Fonts, geometry and statistics are retained."
+    },
+    {
+      "id": "supp4",
+      "title": "Supplementary Figure 4: score information decomposition",
+      "renderer": "supp:4",
+      "scripts": [
+        "figures/manuscript/supplementary/supp4.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L021.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L022.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L023.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L025.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L026.tsv",
+        "data/plot_sources/supplementary/legacy/supplementary_fig_04/S4-L027.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied numerical tables."
+    },
+    {
+      "id": "supp7",
+      "title": "Supplementary Figure 7: pathway context",
+      "renderer": "legacy:7",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_legacy.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/legacy/recovered_originals/fig2_single_target_gene_scores.tsv",
+        "data/plot_sources/supplementary/legacy/recovered_originals/fig2_pathway_continuous_rank.tsv"
+      ],
+      "external_assets": [],
+      "scope": "October 14 integrated supplement; retains 179 genes and 38 GO:0010628 members. Only seeded point jitter is generated."
+    },
+    {
+      "id": "supp8",
+      "title": "Supplementary Figure 8",
+      "renderer": "moa:8",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_moa.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s11/boundary_summary.json",
+        "data/plot_sources/supplementary/biology/s11/moa_recovery_adjusted_probabilities.tsv",
+        "data/plot_sources/supplementary/biology/s11/moa_recovery_counts.tsv",
+        "data/plot_sources/supplementary/biology/s11/fig2_category_descriptive.tsv"
+      ],
+      "external_assets": [],
+      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+    },
+    {
+      "id": "supp9",
+      "title": "Supplementary Figure 9",
+      "renderer": "supp:9",
+      "scripts": [
+        "figures/manuscript/supplementary/supp9.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s10/Figure7_tahoe_rank_pair_source.tsv",
+        "data/plot_sources/supplementary/biology/s12/GR_30drug_canonical_marker_distribution.tsv",
+        "data/plot_sources/supplementary/biology/s12/GR_allcell_marker_log2fc.tsv",
+        "data/plot_sources/supplementary/biology/s12/GR_four_drugs_per_cell_rank_percentile.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied numerical tables."
+    },
+    {
+      "id": "supp10",
+      "title": "Supplementary Figure 10",
+      "renderer": "moa:10",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_moa.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s10/lincs_moa_adjusted_sensitivity.tsv",
+        "data/plot_sources/supplementary/biology/s10/lincs_moa_adjusted_sensitivity_summary.tsv",
+        "data/plot_sources/supplementary/biology/s10/lincs_moa_gain_summary.tsv",
+        "data/plot_sources/supplementary/biology/s10/tahoe_moa_recovery_summary.tsv"
+      ],
+      "external_assets": [],
+      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+    },
+    {
+      "id": "supp11",
+      "title": "Supplementary Figure 11",
+      "renderer": "supp:11",
+      "scripts": [
+        "figures/manuscript/supplementary/supp11.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s11/cluster_bootstrap.tsv",
+        "data/plot_sources/supplementary/biology/s11/functional_concordance_summary.json",
+        "data/plot_sources/supplementary/biology/s11/label_permutation_null.tsv",
+        "data/plot_sources/supplementary/biology/s11/matched_gene_null.tsv",
+        "data/plot_sources/supplementary/biology/s11/missed_cluster_bootstrap.tsv",
+        "data/plot_sources/supplementary/biology/s11/moa_recovery_reactome_concordance.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied numerical tables."
+    },
+    {
+      "id": "supp12",
+      "title": "Supplementary Figure 12",
+      "renderer": "supp:12",
+      "scripts": [
+        "figures/manuscript/supplementary/supp12.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s12/pilot_heatmap_source.tsv",
+        "data/plot_sources/supplementary/biology/s12/pilot_sampling_curve_source.tsv",
+        "data/plot_sources/supplementary/biology/s12/same_n_rank_marker_strata.tsv"
+      ],
+      "external_assets": [],
+      "scope": "Render the supplied numerical tables; Supplementary Figure12 spans two pages."
+    },
+    {
+      "id": "supp13",
+      "title": "Supplementary Figure 13",
+      "renderer": "moa:13",
+      "scripts": [
+        "figures/manuscript/supplementary/supp_moa.py"
+      ],
+      "inputs": [
+        "data/plot_sources/supplementary/biology/s11/annotated_target_family_pure_moa.tsv",
+        "data/plot_sources/supplementary/biology/s11/moa_family_heatmap.tsv"
+      ],
+      "external_assets": [],
+      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+    }
+  ]
+}

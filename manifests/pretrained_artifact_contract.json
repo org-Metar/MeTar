@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "artifact_root": "metar_artifacts",
+  "first_party_required_files": [
+    "checkpoints/selected/round210_process_only_epoch030.pth",
+    "checkpoints/selected/round246_whole_model_checkpoint.pth",
+    "checkpoints/selected/round247_adapter_init.pth",
+    "checkpoints/selected/round252_adapter_seed20260524.pth",
+    "checkpoints/selected/round259_e13_bce001.pth",
+    "checkpoints/selected/round260_A549_seed2043.pth",
+    "checkpoints/selected/round260_SW480_seed2041.pth",
+    "checkpoints/selected/round260_NCI_H460_seed2042.pth",
+    "checkpoints/selected/round261_proteomics_epoch070.pth",
+    "data/processed/fullspace/round259_target_embedding.csv",
+    "data/processed/fullspace/round259_target_embedding_aligned_to_proteomics_gene_order.csv",
+    "data/processed/fullspace/splits_v3.json",
+    "data/processed/lincs/bulk_protocol_lock_v2.json",
+    "data/processed/proteomics/round261_preprocessor.json",
+    "data/processed/tahoe/sc_protocol_lock_v3_20260326.json",
+    "data/processed/tahoe/sc_cell_pool_lock_v3_20260326.json.gz",
+    "data/processed/tahoe/selected_runs/A549_selected_primary_result.portable.json",
+    "data/processed/tahoe/selected_runs/SW480_selected_primary_result.portable.json",
+    "data/processed/tahoe/selected_runs/NCI_H460_selected_primary_result.portable.json",
+    "data/derived/article_exact/round252_selected_public_api_per_unit.tsv.gz",
+    "data/derived/article_exact/round259_archived_per_profile_holdout_metrics.tsv.gz",
+    "data/derived/article_exact/round261_archived_result.json",
+    "figures/reproduction/fig7/round492/source_data/round260_singlecell_fullspace_scores.tsv.gz",
+    "code/original_runs/r176/run_round176_hgtlite_structural_5x_pc3.py",
+    "code/original_runs/r210/run_round210_dim256_checkpoint_sweep.py",
+    "code/original_runs/r211/run_round211_dim256_readout_capacity_sweep.py",
+    "code/original_runs/r215/run_round208_a01_fixedtarget_maml_readout.py",
+    "code/original_runs/r215/round215_fixed_cell_panel.json",
+    "code/original_runs/r230/run_round230_scratch_mlp_metar_target_tower_pc3.py",
+    "code/original_runs/r243/run_round243_leakage_safe_unseen_cell_support_adapter.py",
+    "code/original_runs/r246/run_round246_joint_seen_target_train_pc3_a375_mcf7.py",
+    "code/original_runs/r247/run_round247_support_curve_query_gated_adapter.py",
+    "code/original_runs/r250/run_round250_epmeta_stable_tuning.py",
+    "code/original_runs/r252/run_round252_epiqgate_pseudoval_sweep.py",
+    "code/original_runs/r259_261/scripts/run_round259_crosscell_fullspace_round252query.py",
+    "code/original_runs/r259_261/scripts/run_sc_label_bag_calibration_multicell_base.py",
+    "code/remote_dependencies/h07/train_bulk_sharedsample_indunseenlabel_v1_20260330.py",
+    "code/remote_dependencies/h07/train_bulk_dualbranch_v2_20260328.py"
+  ],
+  "first_party_required_prefixes": [
+    "code/original_runs/r246/",
+    "code/original_runs/r252/",
+    "code/original_runs/r259_261/source_data/",
+    "code/original_runs/r259_261/proteomics_results/"
+  ],
+  "external_inputs": [
+    {
+      "path": "data/processed/lincs/large_data.parquet",
+      "sha256": "970db40a76f2d43a22b75703838bc8ba315ba52caf61c79946e8f1a06c849d41",
+      "materialization": "source",
+      "required_for": [
+        "cross-cell",
+        "full-space-cache"
+      ]
+    },
+    {
+      "path": "data/processed/lincs/compoundinfo_beta.txt",
+      "sha256": "a71fca6de41dcc46a5063858be7e04155f3c09832c8b3fb35814f03db8d9fdff",
+      "materialization": "source",
+      "required_for": [
+        "cross-cell",
+        "full-space-cache"
+      ]
+    },
+    {
+      "path": "data/processed/fullspace/pertkge_ppi_graph.csv",
+      "sha256": "8f1263018811a59498241e19c5fea0939f9ad164fca8862b6ff3cbbdb5bcfd1f",
+      "materialization": "source",
+      "required_for": [
+        "cross-cell",
+        "full-space-cache"
+      ]
+    },
+    {
+      "path": "data/processed/fullspace/h07_prepared_data.pt",
+      "sha256": "4e7af85be1caf15265e4ec7df59b7d79d27fc2dbbda29511bff106b9f4122a07",
+      "materialization": "derived",
+      "required_for": [
+        "full-space"
+      ]
+    },
+    {
+      "path": "data/processed/tahoe/tahoe_a549.h5ad",
+      "sha256": "d9ce5d1cab591c3457927bdcafc354e4f5537d63675305b903fa250090ef4ad2",
+      "materialization": "source",
+      "required_for": [
+        "single-cell"
+      ]
+    },
+    {
+      "path": "data/processed/tahoe/tahoe_sw480.h5ad",
+      "sha256": "ebde61075f2ba5fd40b839b7e5a4c2704c773868ce7eaa9d523f611d23575b2d",
+      "materialization": "source",
+      "required_for": [
+        "single-cell"
+      ]
+    },
+    {
+      "path": "data/processed/tahoe/tahoe_nci_h460.h5ad",
+      "sha256": "e9791be418c24704113e7443e28dc4087fe79fe20e20c4ea012acd21069f55b0",
+      "materialization": "source",
+      "required_for": [
+        "single-cell"
+      ]
+    },
+    {
+      "path": "data/processed/tahoe/tahoe_dti.csv",
+      "sha256": "97e56daa0cfa7eed200913bd10e522d8d7b07a8e2a7d3ab19e8e2f14d0398ede",
+      "materialization": "source",
+      "required_for": [
+        "single-cell"
+      ]
+    },
+    {
+      "path": "data/processed/proteomics/proteomicsdb_data.csv",
+      "sha256": "f8a1da7355190aaa32ab9f13334efa09562cd43cb68b30510a5a3a405304da2b",
+      "materialization": "source",
+      "required_for": [
+        "proteomics"
+      ]
+    },
+    {
+      "path": "data/application_inputs/pdf3/geneinfo_beta.txt",
+      "sha256": "e739d06bad42ff9285c00b778e65d8999425062a3375cc7e7cdab0e7154490b5",
+      "materialization": "source",
+      "required_for": [
+        "bulk-668",
+        "pdf3"
+      ]
+    }
+  ],
+  "input_checksums": {
+    "checkpoints/selected/round246_whole_model_checkpoint.pth": "fa33089913be2693c465c2c142fb506054a477e1f35279999c186db432b1fb8f",
+    "checkpoints/selected/round252_adapter_seed20260524.pth": "5bbb125a966e57a48e2f02d633a565f53123d6045add5d2119f3d2a7921dc357",
+    "checkpoints/selected/round259_e13_bce001.pth": "9e5cfc21a8e133c4347923cc3cdccb7dba22a454d376871a4d430c5441391838",
+    "checkpoints/selected/round260_A549_seed2043.pth": "ec2a83be92c54832a527fd57d5a51b28491e3b3e9a671d5de67c7c2c7cb952b3",
+    "checkpoints/selected/round260_NCI_H460_seed2042.pth": "2b201e1715a89a447a6e6a76dde112f9587d0ac566b7108ccd5e2a481f1f08cb",
+    "checkpoints/selected/round260_SW480_seed2041.pth": "c39c6270ad85626955110784fc0e1b1246f2143788c88ff6d3719324ece56757",
+    "checkpoints/selected/round261_proteomics_epoch070.pth": "c46a242fe273e176b16aa43feb79eaf3ea630f1ba30309a7d85e82dab63ec6bd"
+  }
+}

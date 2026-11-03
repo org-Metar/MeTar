@@ -1,0 +1,44 @@
+{
+  "score_sha256": "6075568b95ef93589616b211d9ffb79ca4c7a376c4c1b7300ceff5b2ab359286",
+  "seed": 20261008,
+  "permutations": 1999,
+  "primary_moa_categories": [
+    "neurotransmitter_signaling",
+    "kinase_signaling",
+    "metabolic_or_inflammatory_enzyme",
+    "nuclear_hormone_signaling",
+    "dna_rna_chromatin",
+    "ion_channel"
+  ],
+  "family_correspondence": {
+    "family_count": 8,
+    "candidate_family_sizes": {
+      "kinase_signaling": 114,
+      "nuclear_hormone_receptor": 15,
+      "neurotransmitter_receptor": 56,
+      "ion_channel": 31,
+      "transporter": 25,
+      "dna_rna_chromatin": 19,
+      "cytoskeleton": 3,
+      "proteostasis": 11
+    },
+    "all_target_clusters": 285,
+    "pure_moa_target_clusters": 269,
+    "mixed_moa_target_clusters": 16,
+    "family_tests": 96,
+    "significant_family_cells_retained": 5,
+    "significant_family_cells_removed": 4
+  },
+  "reactome_concordance": {
+    "eligible_drugs": 443,
+    "eligible_target_clusters": 255,
+    "recovery_counts": {
+      "no_hit": 184,
+      "majority_hit": 160,
+      "minority_hit": 99
+    },
+    "max_existing_auc_reconstruction_error": 2.220446049250313e-16,
+    "label_permutation_attempts": 2018,
+    "reactome_tests": 35
+  }
+}

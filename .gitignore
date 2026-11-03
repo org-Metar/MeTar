@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Runtime output
+outputs/
+downloads/
+results/
+qa/
+logs/
+temp/
+tmp/
+
+# Data and checkpoints
+data/
+source_data/
+checkpoints/
+saved_model/
+*.csv
+*.tsv
+*.parquet
+*.h5
+*.hdf5
+*.h5ad
+*.gctx
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.ckpt
+*.gz
+*.zip
+*.tar
+*.tgz
+*.7z
+
+# Documents, figures, and wet-lab artifacts
+*.xlsx
+*.xlsm
+*.docx
+*.pptx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.tif
+*.tiff
+*.pzfx
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Compact publication source tables; model weights and external inputs stay outside Git.
+!data/
+data/*
+!data/plot_sources/
+!data/plot_sources/**

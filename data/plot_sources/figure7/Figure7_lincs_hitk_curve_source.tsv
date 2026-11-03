@@ -1,0 +1,19 @@
+dataset	method	display_label	rank_cutoff	threshold_percent	value	sd_across_seeds	denominator	denominator_type	candidate_labels	source_metric
+LINCS	random	Random	Hit@1	0.1497005988023952	0.0024020506095978	0.0	415	same_415_drugs	668	multi_label_random_at_1_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@1	0.1497005988023952	0.1600400380520862	0.0036390369847351	415	same_415_drugs	668	Hit@1_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@1	0.1497005988023952	0.2032128514056225	0.0111296437434144	415	same_415_drugs	668	Hit@1_in_668_label_space
+LINCS	random	Random	Hit@5	0.7485029940119761	0.0119321435783688	0.0	415	same_415_drugs	668	multi_label_random_at_5_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@5	0.7485029940119761	0.2797679607318161	0.0037427984356692	415	same_415_drugs	668	Hit@5_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@5	0.7485029940119761	0.3244979919678715	0.0097384382754876	415	same_415_drugs	668	Hit@5_in_668_label_space
+LINCS	random	Random	Hit@10	1.497005988023952	0.023675521608282	0.0	415	same_415_drugs	668	multi_label_random_at_10_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@10	1.497005988023952	0.3489948070670962	0.0026129513620456	415	same_415_drugs	668	Hit@10_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@10	1.497005988023952	0.4152610441767068	0.0097384382754876	415	same_415_drugs	668	Hit@10_in_668_label_space
+LINCS	random	Random	Hit@20	2.9940119760479043	0.0466362541613765	0.0	415	same_415_drugs	668	multi_label_random_at_20_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@20	2.9940119760479043	0.4361484276544518	0.0053581232494746	415	same_415_drugs	668	Hit@20_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@20	2.9940119760479043	0.491566265060241	0.0086880753625638	415	same_415_drugs	668	Hit@20_in_668_label_space
+LINCS	random	Random	Hit@30	4.491017964071856	0.0689552864021599	0.0	415	same_415_drugs	668	multi_label_random_at_30_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@30	4.491017964071856	0.5007883794028373	0.0039094731910303	415	same_415_drugs	668	Hit@30_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@30	4.491017964071856	0.5461847389558233	0.0013912054679267	415	same_415_drugs	668	Hit@30_in_668_label_space
+LINCS	random	Random	Hit@50	7.48502994011976	0.1119090177961594	0.0	415	same_415_drugs	668	multi_label_random_at_50_of_668
+LINCS	single_cell_mean	Cell-line mean	Hit@50	7.48502994011976	0.5863074029941501	0.0026471577845995	415	same_415_drugs	668	Hit@50_in_668_label_space
+LINCS	multi_cell_consensus	Consensus	Hit@50	7.48502994011976	0.62570281124498	0.0060641240443941	415	same_415_drugs	668	Hit@50_in_668_label_space

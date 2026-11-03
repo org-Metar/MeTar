@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "scope": "Additional scratch-training prerequisites beyond the pretrained artifact contract",
+  "inputs": [
+    {
+      "path": "data/processed/closed/r210/pc3_landmark_response_978.tsv.gz",
+      "bytes": 11759450,
+      "sha256": "73453f07f5555be29fe0c5faf66d43da9015f4d63a2704a7688679675d013952",
+      "role": "Original PC3 978-feature response matrix and split used by the selected gene-prior stage",
+      "source": "Prepared LINCS-derived response table"
+    },
+    {
+      "path": "data/processed/closed/r210/pc3_metar_drugcell_scores_668.tsv.gz",
+      "bytes": 13105321,
+      "sha256": "ee4df69650b9d36421e34ad0277657362bc9d3d0d71306b759c21b2191b040f6",
+      "role": "Canonical 668-target label ordering read by the selected Round210 stage",
+      "source": "Original PC3 668-target table"
+    },
+    {
+      "path": "data/public_raw/gene_prior/process.txt",
+      "bytes": 96576483,
+      "sha256": "663ac6e80257769d998f270af04240e5595f5c6483317cacd67e4e141cce0482",
+      "role": "Graph resource; selected prior code excludes drug nodes, DTI and expression-effect edges",
+      "source": "PertKGE gene-relation resource",
+      "upstream_url": "https://github.com/myzhengSIMM/PertKGE"
+    }
+  ],
+  "other_inputs": "The complete list of presence requirements is EXTERNAL_INPUTS/METADATA_INPUTS in src/metar/training_workspace.py; pretrained/public paths and digests are in manifests/pretrained_artifact_contract.json.",
+  "single_cell_boundary": "Round260 training and prediction consume X128 features. The original Tahoe fixed-HVG/SVD preprocessing recipe and saved projection are separately available via tahoe_projection.tar.gz and scripts/prepare_single_cell.py; exact historical-score verification still requires the archived X128 inputs.",
+  "download_archive": "training_inputs.tar.gz"
+}

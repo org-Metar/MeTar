@@ -1,0 +1,51 @@
+{
+  "render": {
+    "width_mm": 178,
+    "preview_dpi": 180,
+    "detail_dpi": 600,
+    "height": "derived from complete content, never globally shrink to a fixed height",
+    "backend": "python",
+    "font": "Arial"
+  },
+  "palette": {
+    "MeTar": "#2D6F9F",
+    "SSGCN": "#C77C5D",
+    "PertKGE": "#6F907F",
+    "Random": "#949CA6",
+    "text": "#263238",
+    "grid": "#D9E2EC",
+    "semantic_exceptions": "preserve distinct cell/condition/strategy/status/heatmap roles"
+  },
+  "typography": {
+    "axis_label": {
+      "pt": 8.5,
+      "weight": "normal"
+    },
+    "tick_category_legend_heatmap_value": {
+      "pt": 8,
+      "weight": "normal"
+    },
+    "table_body": {
+      "pt": 8,
+      "weight": "normal"
+    },
+    "table_header": {
+      "pt": 8.5,
+      "weight": "normal"
+    },
+    "panel_letter": {
+      "pt": 10.5,
+      "weight": "bold",
+      "case": "lower"
+    },
+    "secondary_annotation": {
+      "pt": 7.5,
+      "weight": "normal"
+    },
+    "technical_tolerance_pt": 0.25,
+    "workflow_exception": "specific secondary miniature labels only; main semantic nodes readable; compare actual visual hierarchy",
+    "shrink_to_fit": false,
+    "heatmap_significant_value_bold": false,
+    "leading_zero": true
+  }
+}

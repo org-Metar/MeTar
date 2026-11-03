@@ -1,0 +1,5 @@
+analysis_set	n_drugs	candidate_space	evaluable_rule	n_not_evaluable_from_scored	role
+scored proteomic test drugs	15	16583	score vector available after fixed-space inference	0	starting set
+seen-target diagnostic	13	102	at least one seen positive target in the proteomic 102-label space	2	secondary diagnostic
+holdout-target primary	9	16583	at least one held-out positive target in the 16,583-gene space	6	primary transfer evidence
+seen-holdout overlap	7		drugs evaluable for both endpoint families		denominator audit

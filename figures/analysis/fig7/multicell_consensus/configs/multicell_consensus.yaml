@@ -1,0 +1,37 @@
+round: Round430
+task: multicell_consensus_prediction_current
+
+code_release:
+  local_root: vendor/metar_legacy
+  server_root: vendor/metar_legacy
+
+round429:
+  local_root: compat/home/lwn/claude/manuscript/write/claude_round429_lincs_layer_sensitivity_execution_20260623
+  server_root: compat/home/lwn/claude/manuscript/write/claude_round429_lincs_layer_sensitivity_execution_20260623
+  layer: L5_current_signature
+
+label_order:
+  local_path: data/processed/lincs/r429_runtime/seen_668_genes.tsv
+  server_path: data/processed/lincs/r429_runtime/seen_668_genes.tsv
+
+seeds: [1, 2, 3]
+modes:
+  adapted: support_adapted_scores.tsv.gz
+
+aggregation:
+  min_cell_lines: 2
+  rrf_k: 60
+  methods:
+    - raw_score_mean
+    - cell_zscore_mean
+
+metrics:
+  ks: [1, 5, 10, 20, 30, 50]
+  main_metric: Hit@10
+
+outputs:
+  root: reproduction_runs/round430_current
+  scores_dir: scores/drug_level
+  metrics_dir: metrics
+  figures_dir: figures
+  report: multicell_consensus_report_zh.md

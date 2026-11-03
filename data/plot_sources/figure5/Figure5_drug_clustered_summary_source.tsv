@@ -1,0 +1,5 @@
+endpoint_role	threshold_percent	n_independent_drugs	n_nested_drug_cell_observations	fixed_cell_lines	drug_level_mean_recovery	drug_cluster_bootstrap95_low	drug_cluster_bootstrap95_high	matched_random_anyhit_mean	bootstrap_replicates	bootstrap_seed	resampling_unit
+secondary	1	30	90	A549|SW480|NCI-H460	0.3888888888888889	0.25555555555555554	0.5222222222222223	0.010603470164904911	20000	20260713	whole_drug_cluster
+primary	5	30	90	A549|SW480|NCI-H460	0.6444444444444445	0.4888888888888889	0.788888888888889	0.053078211848558404	20000	20260713	whole_drug_cluster
+secondary	10	30	90	A549|SW480|NCI-H460	0.7222222222222222	0.5777777777777777	0.8555555555555555	0.10568153525596467	20000	20260713	whole_drug_cluster
+secondary	20	30	90	A549|SW480|NCI-H460	0.7444444444444445	0.611111111111111	0.8666666666666667	0.2095634805682389	20000	20260713	whole_drug_cluster

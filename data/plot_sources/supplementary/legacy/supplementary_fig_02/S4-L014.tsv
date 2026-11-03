@@ -1,0 +1,7 @@
+threshold	state	n_pairs	total_pairs	fraction
+Hit@10	both recovered	637	2658	0.23965387509405567
+Hit@10	one context only	528	2658	0.1986455981941309
+Hit@10	neither recovered	1493	2658	0.5617005267118134
+Hit@30	both recovered	938	2658	0.35289691497366443
+Hit@30	one context only	639	2658	0.24040632054176073
+Hit@30	neither recovered	1081	2658	0.40669676448457487

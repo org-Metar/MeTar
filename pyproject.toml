@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metar-reproducibility"
+version = "0.2.0"
+description = "Article-aligned prediction and training interfaces for MeTar"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyyaml>=6.0",
+    "torch>=2.0",
+]
+
+[project.optional-dependencies]
+single-cell = ["anndata>=0.10"]
+parquet = ["pyarrow>=14.0"]
+dev = ["pytest>=7.0"]
+training = ["scipy>=1.10", "scikit-learn>=1.2", "pyarrow>=14.0", "anndata>=0.10"]
+plotting = ["matplotlib>=3.7", "scipy>=1.10", "pillow>=10.0", "pymupdf>=1.24,<2"]
+tahoe-preprocessing = ["h5py>=3.8", "scipy>=1.10", "anndata>=0.10", "zarr>=2.16,<3", "numcodecs>=0.11,<0.16"]
+
+[project.scripts]
+metar = "metar.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

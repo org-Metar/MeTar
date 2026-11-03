@@ -1,0 +1,78 @@
+{
+  "all_drugs": 494,
+  "recovery_counts": {
+    "no_hit": 217,
+    "majority_hit": 167,
+    "minority_hit": 110
+  },
+  "primary_moa_drugs": 358,
+  "single_target_primary_categories": [
+    "neurotransmitter_signaling",
+    "kinase_signaling",
+    "metabolic_or_inflammatory_enzyme",
+    "nuclear_hormone_signaling"
+  ],
+  "model_covariance": "cluster by exact annotated-target set",
+  "omnibus": [
+    {
+      "scope": "all_drugs",
+      "endpoint": "no_hit",
+      "n_drugs": 358,
+      "n_target_clusters": 196,
+      "wald_chi2": 8.432935378445228,
+      "degrees_freedom": 5,
+      "p_omnibus": 0.13393471800871384,
+      "converged": true,
+      "log_targets_odds_ratio": 0.4698090238525334,
+      "log_targets_p": 0.08800801452026295,
+      "log_contexts_odds_ratio": 0.4500150315170729,
+      "log_contexts_p": 0.006060596484062768,
+      "p_holm_two_endpoints": 0.13393471800871384
+    },
+    {
+      "scope": "all_drugs",
+      "endpoint": "majority_hit",
+      "n_drugs": 358,
+      "n_target_clusters": 196,
+      "wald_chi2": 12.78382550689535,
+      "degrees_freedom": 5,
+      "p_omnibus": 0.025491006023982476,
+      "converged": true,
+      "log_targets_odds_ratio": 3.1894913520107466,
+      "log_targets_p": 0.006989664378647747,
+      "log_contexts_odds_ratio": 0.8363691182594287,
+      "log_contexts_p": 0.5458567342300173,
+      "p_holm_two_endpoints": 0.05098201204796495
+    },
+    {
+      "scope": "single_target",
+      "endpoint": "no_hit",
+      "n_drugs": 212,
+      "n_target_clusters": 90,
+      "wald_chi2": 5.183916809728716,
+      "degrees_freedom": 3,
+      "p_omnibus": 0.15881470794253952,
+      "converged": true,
+      "log_targets_odds_ratio": null,
+      "log_targets_p": null,
+      "log_contexts_odds_ratio": 0.631920049016656,
+      "log_contexts_p": 0.21730501875666441,
+      "p_holm_two_endpoints": 0.31762941588507904
+    },
+    {
+      "scope": "single_target",
+      "endpoint": "majority_hit",
+      "n_drugs": 212,
+      "n_target_clusters": 90,
+      "wald_chi2": 4.403779108936886,
+      "degrees_freedom": 3,
+      "p_omnibus": 0.2210352317252611,
+      "converged": true,
+      "log_targets_odds_ratio": null,
+      "log_targets_p": null,
+      "log_contexts_odds_ratio": 0.5098078436878252,
+      "log_contexts_p": 0.06126392006734251,
+      "p_holm_two_endpoints": 0.31762941588507904
+    }
+  ]
+}

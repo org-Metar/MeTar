@@ -1,0 +1,42 @@
+project: MeTar
+
+closed_model:
+  target_prior: gene_relation_only
+  round210_variant: r210_a02_reladd2_d256_f16_t020_edge050
+  round210_epoch: 30
+  round246_variant: r246_joint_lm0p5_sc0p15_mn2p5
+  round246_epoch: 6
+  round252_variant: r252_epiqgate_lm1_lr0p00015_sc0p18_mn2p5_ba0p1_s32_q32_diverse_label_seed20260524
+  round252_epoch: 10
+
+fullspace_model:
+  round259_variant: e13_bce001
+  round259_seed: 20260517
+  target_count: 16583
+
+single_cell:
+  A549: {loss: drug_normalized_bce, seed: 2043, epoch: 1}
+  SW480: {loss: label_bag_retrieval, seed: 2041, epoch: 6}
+  NCI_H460: {loss: drug_normalized_bce, seed: 2042, epoch: 3}
+
+proteomics:
+  round261_seed: 2026
+  round261_epoch: 70
+
+consensus:
+  score_mode: support_adapted_scores
+  seeds: [1, 2, 3]
+  methods: [raw_score_mean, cell_zscore_mean]
+  metric_reference: single_cell_mean
+
+single_cell_pseudobulk:
+  input: processed_128d_tahoe_feature_mean
+  selection_policy: matched_singlecell_objective
+  branches:
+    A549: {loss: drug_normalized_bce, seed: 2043}
+    SW480: {loss: label_bag_retrieval, seed: 2041}
+    NCI_H460: {loss: drug_normalized_bce, seed: 2042}
+  prediction_cell_counts: [1, 2, 4, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256, 300]
+
+pdf3:
+  branch: round291_raw_direct_log2fc_seen668

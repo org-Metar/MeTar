@@ -1,0 +1,4 @@
+dataset	state	display_label	count	denominator	denominator_type
+LINCS	top5	top 5%	698	1245	drug_seed_evaluations
+LINCS	top10_only	top 5-10%	126	1245	drug_seed_evaluations
+LINCS	missed_top10	missed top 10%	421	1245	drug_seed_evaluations

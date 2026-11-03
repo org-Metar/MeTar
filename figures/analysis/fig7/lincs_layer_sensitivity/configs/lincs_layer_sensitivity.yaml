@@ -1,0 +1,71 @@
+round: Round429
+task: lincs_L5_current_signature_only
+
+code_release:
+  local_root: vendor/metar_legacy
+  server_root: vendor/metar_legacy
+
+companion_data:
+  local_audit_root: .
+  server_root: .
+
+server_sources:
+  bulk_parquet: data/processed/lincs/large_data.parquet
+  compoundinfo_beta: data/processed/lincs/compoundinfo_beta.txt
+  siginfo_beta: data/public_raw/lincs/siginfo_beta.txt
+  l5_gctx: data/public_raw/lincs/level5_beta_trt_cp_n720216x12328.gctx
+  protocol_lock: data/processed/lincs/bulk_protocol_lock_v2.json
+  official_heldout_cells: data/processed/lincs/r429_runtime/fig3_official_heldout_cells.tsv
+  label_order: data/processed/lincs/r429_runtime/seen_668_genes.tsv
+  fixed_pertkge_fig3_scores: data/processed/lincs/r429_runtime/fig3_pertkge_corrected_cross_cell_scores.tsv.gz
+
+candidate_space: 668
+feature_count: 978
+evaluation_unit: score_mean_drug_cell
+heldout_cell_config: fig3_heldout_cell_known_target
+
+support_adapter:
+  support_size: 64
+  selector: diverse_label
+  shift_scale: 0.18
+
+layers:
+  L5_current_signature:
+    description: Current manuscript signature layer only.
+    input_root: figures/reproduction/fig7/round429_L5_current_signature/inputs
+
+splits:
+  train: train_profiles.tsv.gz
+  val: val_profiles.tsv.gz
+  test: test_profiles.tsv.gz
+
+columns:
+  profile_id_candidates: [sig_id, profile_id, inst_id]
+  pert_id_candidates: [pert_id, drug, canonical_drug_id]
+  drug_candidates: [drug, pert_id, canonical_drug_id]
+  cell_line_candidates: [cell_line, cell_id, cell]
+  dose_candidates: [pert_dose, dose]
+  time_candidates: [pert_time, time]
+  split_candidates: [split]
+  target_col: true_targets
+
+training:
+  seeds: [1, 2, 3]
+  embed_dim: 256
+  hidden_dim: 512
+  epochs: 40
+  batch_size: 128
+  lr: 0.0003
+  device: cuda
+
+support_training:
+  epochs: 30
+  batch_size: 4096
+  lr: 0.00015
+  device: cuda
+
+outputs:
+  root: reproduction_runs/round429_L5_current
+  metrics_dir: metrics
+  scores_dir: scores
+  figures_dir: figures

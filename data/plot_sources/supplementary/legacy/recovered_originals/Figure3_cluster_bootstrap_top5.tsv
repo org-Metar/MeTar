@@ -1,0 +1,3 @@
+analysis	threshold_percent	top_k_rank_cutoff	n_drug_clusters	n_profiles	n_success	recovery	drug_cluster_bootstrap95_low	drug_cluster_bootstrap95_high	bootstrap_replicates	bootstrap_seed	resampling_unit	candidate_space	n_masked_closed_labels
+full_universe	0.05	829	177	4463	1459	0.3269101501232355	0.2386594347258373	0.42942672664158643	20000	20260713	whole_drug_cluster	16583	0
+closed_labels_masked	0.05	829	177	4463	2385	0.5343939054447681	0.41743801117406504	0.6591156269612383	20000	20260713	whole_drug_cluster	16583	668

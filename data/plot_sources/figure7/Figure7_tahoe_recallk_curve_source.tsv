@@ -1,0 +1,19 @@
+dataset	method	display_label	k	threshold_percent	value	sd_across_seeds	rank_cutoff	metric	candidate_labels
+Tahoe	multi_cell_consensus	Consensus	1	0.1507567991316408	0.1	0.0	Recall@1	Macro Recall@K	16583
+Tahoe	multi_cell_consensus	Consensus	5	0.7477537236929386	0.3777777777777778	0.0	Recall@5	Macro Recall@K	16583
+Tahoe	multi_cell_consensus	Consensus	10	1.4955074473858772	0.4777777777777778	0.0	Recall@10	Macro Recall@K	16583
+Tahoe	multi_cell_consensus	Consensus	20	2.9910148947717543	0.5888888888888889	0.0	Recall@20	Macro Recall@K	16583
+Tahoe	multi_cell_consensus	Consensus	30	4.492552614122896	0.6888888888888889	0.0	Recall@30	Macro Recall@K	16583
+Tahoe	multi_cell_consensus	Consensus	50	7.483567508894651	0.6888888888888889	0.0	Recall@50	Macro Recall@K	16583
+Tahoe	random	Random	1	0.1507567991316408	0.0015075679913164	0.0	Recall@1	Macro Recall@K	16583
+Tahoe	random	Random	5	0.7477537236929386	0.0074775372369293	0.0	Recall@5	Macro Recall@K	16583
+Tahoe	random	Random	10	1.4955074473858772	0.0149550744738587	0.0	Recall@10	Macro Recall@K	16583
+Tahoe	random	Random	20	2.9910148947717543	0.0299101489477175	0.0	Recall@20	Macro Recall@K	16583
+Tahoe	random	Random	30	4.492552614122896	0.0449255261412289	0.0	Recall@30	Macro Recall@K	16583
+Tahoe	random	Random	50	7.483567508894651	0.0748356750889465	0.0	Recall@50	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	1	0.1507567991316408	0.0666666666666666	0.0	Recall@1	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	5	0.7477537236929386	0.3222222222222222	0.0	Recall@5	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	10	1.4955074473858772	0.4037037037037037	0.0	Recall@10	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	20	2.9910148947717543	0.562962962962963	0.0	Recall@20	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	30	4.492552614122896	0.6185185185185185	0.0	Recall@30	Macro Recall@K	16583
+Tahoe	single_cell_mean	Cell-line mean	50	7.483567508894651	0.6777777777777777	0.0	Recall@50	Macro Recall@K	16583

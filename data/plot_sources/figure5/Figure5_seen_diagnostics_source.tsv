@@ -1,0 +1,4 @@
+cell_line	seen_test_Hit@5	seen_test_Hit@10	seen_test_Hit@20	seen_test_Hit@50
+A549	0.2	0.3	0.4	0.8
+SW480	0.2	0.3	0.4	0.7
+NCI-H460	0.2	0.2	0.3	0.7

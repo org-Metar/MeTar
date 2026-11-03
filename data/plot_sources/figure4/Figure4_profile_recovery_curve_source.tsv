@@ -1,0 +1,506 @@
+method	threshold	profile_recovery	n_profiles	candidate_universe	n_candidates	denominator_scope
+Round259	0.0	0.0	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.0	0.0	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.005	0.00022406453058480843	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.005	0.005	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.01	0.03136903428187318	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.01	0.01	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.015	0.033609679587721264	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.015	0.015	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.02	0.06968406901187542	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.02	0.02	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.025	0.17992381805960117	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.025	0.025	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.03	0.22428859511539323	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.03	0.03	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.035	0.2791844051086713	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.035	0.035	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.04	0.2959892449025319	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.04	0.04	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.045	0.308760923145866	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.045	0.045	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.05	0.3269101501232355	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.05	0.05	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.055	0.39256105758458437	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.055	0.055	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.06	0.458436029576518	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.06	0.06	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.065	0.4976473224288595	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.065	0.065	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.07	0.5178131301814922	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.07	0.07	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.075	0.5258794532825454	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.075	0.075	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.08	0.5377548734035402	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.08	0.08	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.085	0.5568003585032489	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.085	0.085	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.09	0.5756217790723729	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.09	0.09	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.095	0.595339457763836	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.095	0.095	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.1	0.6139368138023751	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.1	0.1	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.105	0.6311897826574053	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.105	0.105	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.11	0.6506833968182837	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.11	0.11	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.115	0.6600941071028457	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.115	0.115	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.12	0.6697288819179924	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.12	0.12	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.125	0.6764508178355366	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.125	0.125	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.13	0.6822764956307417	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.13	0.13	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.135	0.6892224960788708	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.135	0.135	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.14	0.692359399507058	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.14	0.14	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.145	0.7010979161998656	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.145	0.145	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.15	0.706475464933901	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.15	0.15	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.155	0.7109567555455971	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.155	0.155	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.16	0.714541788034954	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.16	0.16	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.165	0.7176786914631413	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.165	0.165	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.17	0.7199193367689894	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.17	0.17	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.17500000000000002	0.7248487564418552	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.17500000000000002	0.17500000000000002	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.18	0.7277615953394577	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.18	0.18	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.185	0.7313466278288147	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.185	0.185	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.19	0.7338113376652476	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.19	0.19	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.195	0.7373963701546046	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.195	0.195	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.2	0.7394129509298678	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.2	0.2	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.20500000000000002	0.741429531705131	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.20500000000000002	0.20500000000000002	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.21	0.7432220479498095	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.21	0.21	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.215	0.7459108223168273	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.215	0.215	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.22	0.7468070804391664	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.22	0.22	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.225	0.7485995966838449	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.225	0.225	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.23	0.7506161774591082	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.23	0.23	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.23500000000000001	0.7519605646426171	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.23500000000000001	0.23500000000000001	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.24	0.7548734035402196	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.24	0.24	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.245	0.7580103069684069	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.245	0.245	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.25	0.7598028232130853	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.25	0.25	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.255	0.7611472103965942	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.255	0.255	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.26	0.7624915975801031	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.26	0.26	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.265	0.7647322428859512	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.265	0.265	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.27	0.7667488236612144	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.27	0.27	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.275	0.7694375980282321	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.275	0.275	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.28	0.7727985659870042	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.28	0.28	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.28500000000000003	0.776607663006946	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.28500000000000003	0.28500000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.29	0.7815370826798118	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.29	0.29	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.295	0.7853461796997535	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.295	0.295	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.3	0.7891552767196953	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.3	0.3	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.305	0.792964373739637	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.305	0.305	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.31	0.7949809545149003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.31	0.31	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.315	0.7969975352901636	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.315	0.315	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.32	0.7992381805960117	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.32	0.32	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.325	0.8008066323101053	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.325	0.325	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.33	0.8019269549630293	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.33	0.33	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.335	0.8046157293300471	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.335	0.335	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.34	0.80708043916648	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.34	0.34	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.34500000000000003	0.809321084472328	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.34500000000000003	0.34500000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.35000000000000003	0.810441407125252	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.35000000000000003	0.35000000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.355	0.8113376652475913	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.355	0.355	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.36	0.811785794308761	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.36	0.36	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.365	0.8138023750840242	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.365	0.365	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.37	0.815146762267533	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.37	0.37	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.375	0.816491149451042	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.375	0.375	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.38	0.8176114721039659	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.38	0.38	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.385	0.819852117409814	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.385	0.385	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.39	0.8207483755321533	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.39	0.39	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.395	0.8223168272462469	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.395	0.395	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.4	0.8232130853685862	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.4	0.4	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.405	0.8243334080215102	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.405	0.405	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.41000000000000003	0.8265740533273582	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.41000000000000003	0.41000000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.41500000000000004	0.8276943759802823	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.41500000000000004	0.41500000000000004	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.42	0.8285906341026216	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.42	0.42	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.425	0.8312794084696392	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.425	0.425	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.43	0.8321756665919785	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.43	0.43	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.435	0.8335200537754873	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.435	0.435	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.44	0.8348644409589961	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.44	0.44	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.445	0.8364328926730898	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.445	0.445	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.45	0.8364328926730898	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.45	0.45	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.455	0.8373291507954291	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.455	0.455	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.46	0.8388976025095227	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.46	0.46	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.465	0.8409141832847861	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.465	0.465	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.47000000000000003	0.8422585704682949	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.47000000000000003	0.47000000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.47500000000000003	0.8431548285906341	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.47500000000000003	0.47500000000000003	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.48	0.8449473448353125	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.48	0.48	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.485	0.846739861079991	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.485	0.485	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.49	0.8480842482634999	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.49	0.49	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.495	0.8503248935693479	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.495	0.495	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.5	0.852565538875196	4463	Round259 full-gene universe	16583.0	round259_single_method
+Random	0.5	0.5	4463	Round259 full-gene universe	16583.0	round259_single_method
+Round259	0.0	0.0	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.0	0.0	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.0	0.0	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.005	0.00022406453058480843	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.005	0.0	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.005	0.005	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.01	0.03136903428187318	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.01	0.022854582119650458	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.01	0.01	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.015	0.033609679587721264	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.015	0.06990813354246023	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.015	0.015	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.02	0.06968406901187542	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.02	0.10777503921129285	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.02	0.02	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.025	0.17992381805960117	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.025	0.1326462021062066	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.025	0.025	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.03	0.22428859511539323	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.03	0.1512435581447457	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.03	0.03	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.035	0.2791844051086713	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.035	0.17409814026439616	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.035	0.035	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.04	0.2959892449025319	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.04	0.1882142056912391	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.04	0.04	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.045	0.308760923145866	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.045	0.19224736724176564	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.045	0.045	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.05	0.3269101501232355	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.05	0.19493614160878334	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.05	0.05	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.055	0.39256105758458437	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.055	0.19852117409814027	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.055	0.055	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.06	0.458436029576518	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.06	0.20098588393457315	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.06	0.06	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.065	0.4976473224288595	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.065	0.20367465830159087	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.065	0.065	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.07	0.5178131301814922	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.07	0.20389872283217567	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.07	0.07	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.075	0.5258794532825454	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.075	0.20546717454626934	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.075	0.075	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.08	0.5377548734035402	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.08	0.20703562626036298	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.08	0.08	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.085	0.5568003585032489	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.085	0.20905220703562627	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.085	0.085	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.09	0.5756217790723729	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.09	0.21196504593322876	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.09	0.09	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.095	0.595339457763836	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.095	0.21398162670849205	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.095	0.095	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.1	0.6139368138023751	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.1	0.21667040107550975	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.1	0.1	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.105	0.6311897826574053	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.105	0.21891104638135783	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.105	0.105	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.11	0.6506833968182837	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.11	0.22137575621779074	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.11	0.11	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.115	0.6600941071028457	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.115	0.22294420793188438	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.115	0.115	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.12	0.6697288819179924	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.12	0.22675330495182613	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.12	0.12	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.125	0.6764508178355366	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.125	0.23280304727761594	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.125	0.125	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.13	0.6822764956307417	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.13	0.2390768541339906	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.13	0.13	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.135	0.6892224960788708	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.135	0.24759130629621331	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.135	0.135	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.14	0.692359399507058	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.14	0.25901859735603855	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.14	0.14	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.145	0.7010979161998656	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.145	0.26977369482410934	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.145	0.145	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.15	0.706475464933901	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.15	0.2767196952722384	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.15	0.15	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.155	0.7109567555455971	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.155	0.28590634102621554	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.155	0.155	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.16	0.714541788034954	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.16	0.29554111584136233	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.16	0.16	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.165	0.7176786914631413	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.165	0.3058480842482635	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.165	0.165	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.17	0.7199193367689894	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.17	0.31458660094107105	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.17	0.17	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.17500000000000002	0.7248487564418552	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.17500000000000002	0.32578982747031143	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.17500000000000002	0.17500000000000002	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.18	0.7277615953394577	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.18	0.3378893121218911	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.18	0.18	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.185	0.7313466278288147	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.185	0.34707595787586826	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.185	0.185	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.19	0.7338113376652476	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.19	0.35447008738516694	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.19	0.19	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.195	0.7373963701546046	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.195	0.361416087833296	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.195	0.195	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.2	0.7394129509298678	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.2	0.36589737844499215	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.2	0.2	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.20500000000000002	0.741429531705131	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.20500000000000002	0.3703786690566883	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.20500000000000002	0.20500000000000002	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.21	0.7432220479498095	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.21	0.3750840241989693	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.21	0.21	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.215	0.7459108223168273	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.215	0.3797893793412503	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.215	0.215	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.22	0.7468070804391664	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.22	0.3844947344835313	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.22	0.22	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.225	0.7485995966838449	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.225	0.387183508850549	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.225	0.225	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.23	0.7506161774591082	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.23	0.38942415415639703	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.23	0.23	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.23500000000000001	0.7519605646426171	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.23500000000000001	0.3921129285234147	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.23500000000000001	0.23500000000000001	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.24	0.7548734035402196	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.24	0.39502576742101725	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.24	0.24	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.245	0.7580103069684069	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.245	0.3981626708492046	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.245	0.245	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.25	0.7598028232130853	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.25	0.40107550974680706	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.25	0.25	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.255	0.7611472103965942	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.255	0.4055568003585032	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.255	0.255	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.26	0.7624915975801031	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.26	0.4091418328478602	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.26	0.26	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.265	0.7647322428859512	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.265	0.4125028008066323	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.265	0.265	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.27	0.7667488236612144	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.27	0.41810441407125254	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.27	0.27	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.275	0.7694375980282321	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.275	0.424602285458212	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.275	0.275	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.28	0.7727985659870042	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.28	0.43222047949809544	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.28	0.28	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.28500000000000003	0.776607663006946	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.28500000000000003	0.4407349316603182	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.28500000000000003	0.28500000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.29	0.7815370826798118	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.29	0.4501456419448801	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.29	0.29	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.295	0.7853461796997535	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.295	0.4604526103517813	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.295	0.295	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.3	0.7891552767196953	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.3	0.47232803047277616	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.3	0.3	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.305	0.792964373739637	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.305	0.4862200313690343	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.305	0.305	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.31	0.7949809545149003	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.31	0.49809545149002915	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.31	0.31	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.315	0.7969975352901636	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.315	0.511091194263948	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.315	0.315	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.32	0.7992381805960117	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.32	0.5256553887519606	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.32	0.32	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.325	0.8008066323101053	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.325	0.5368586152812009	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.325	0.325	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.33	0.8019269549630293	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.33	0.5500784225857047	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.33	0.33	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.335	0.8046157293300471	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.335	0.5621779072372843	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.335	0.335	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.34	0.80708043916648	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.34	0.5747255209500336	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.34	0.34	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.34500000000000003	0.809321084472328	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.34500000000000003	0.5803271342146539	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.34500000000000003	0.34500000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.35000000000000003	0.810441407125252	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.35000000000000003	0.5854806184181044	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.35000000000000003	0.35000000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.355	0.8113376652475913	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.355	0.5904100380909701	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.355	0.355	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.36	0.811785794308761	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.36	0.5948913287026664	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.36	0.36	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.365	0.8138023750840242	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.365	0.5989244902531929	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.365	0.365	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.37	0.815146762267533	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.37	0.601165135559041	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.37	0.37	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.375	0.816491149451042	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.375	0.6056464261707372	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.375	0.375	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.38	0.8176114721039659	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.38	0.6099036522518485	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.38	0.38	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.385	0.819852117409814	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.385	0.6119202330271118	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.385	0.385	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.39	0.8207483755321533	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.39	0.6141608783329598	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.39	0.39	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.395	0.8223168272462469	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.395	0.6161774591082232	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.395	0.395	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.4	0.8232130853685862	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.4	0.6186421689446561	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.4	0.4	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.405	0.8243334080215102	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.405	0.6197624915975801	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.405	0.405	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.41000000000000003	0.8265740533273582	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.41000000000000003	0.6215550078422586	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.41000000000000003	0.41000000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.41500000000000004	0.8276943759802823	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.41500000000000004	0.6226753304951826	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.41500000000000004	0.41500000000000004	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.42	0.8285906341026216	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.42	0.6246919112704459	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.42	0.42	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.425	0.8312794084696392	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.425	0.6260362984539547	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.425	0.425	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.43	0.8321756665919785	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.43	0.626932556576294	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.43	0.43	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.435	0.8335200537754873	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.435	0.6287250728209725	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.435	0.435	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.44	0.8348644409589961	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.44	0.6305175890656509	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.44	0.44	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.445	0.8364328926730898	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.445	0.6320860407797446	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.445	0.445	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.45	0.8364328926730898	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.45	0.632758234371499	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.45	0.45	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.455	0.8373291507954291	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.455	0.6352229442079319	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.455	0.455	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.46	0.8388976025095227	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.46	0.6372395249831951	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.46	0.46	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.465	0.8409141832847861	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.465	0.639704234819628	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.465	0.465	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.47000000000000003	0.8422585704682949	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.47000000000000003	0.6428411382478154	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.47000000000000003	0.47000000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.47500000000000003	0.8431548285906341	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.47500000000000003	0.6453058480842483	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.47500000000000003	0.47500000000000003	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.48	0.8449473448353125	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.48	0.6477705579206812	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.48	0.48	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.485	0.846739861079991	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.485	0.6497871386959444	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.485	0.485	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.49	0.8480842482634999	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.49	0.6526999775935469	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.49	0.49	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.495	0.8503248935693479	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.495	0.6547165583688103	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.495	0.495	4463	native percentile analytic		paired_round259_pertkge_profiles
+Round259	0.5	0.852565538875196	4463	Round259 full-gene universe	16583.0	paired_round259_pertkge_profiles
+PertKGE_original_inductive	0.5	0.6574053327358279	4463	PertKGE Protein native universe	19556.0	paired_round259_pertkge_profiles
+Random	0.5	0.5	4463	native percentile analytic		paired_round259_pertkge_profiles

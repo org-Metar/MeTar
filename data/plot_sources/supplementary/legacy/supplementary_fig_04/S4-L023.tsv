@@ -1,0 +1,6 @@
+quantity	value
+observed_drug_identity_fraction	0.7318649090757452
+null_drug_identity_median	0.32879480825471485
+null_drug_identity_q025	0.2057355780836106
+null_drug_identity_q975	0.4876607152597147
+empirical_p_null_ge_observed	0.0

@@ -1,0 +1,6 @@
+shared_all_three	partial	missed_all_three	n_total	moa_class	moa_label
+7	6	2	15	kinase_signaling	Kinase signaling
+4	0	0	4	nuclear_hormone_signaling	Nuclear-hormone signaling
+2	1	0	3	neurotransmitter_signaling	Neurotransmitter signaling
+1	0	3	4	dna_rna_chromatin	DNA/RNA/chromatin
+3	1	0	4	unclassified_moa	Unclassified

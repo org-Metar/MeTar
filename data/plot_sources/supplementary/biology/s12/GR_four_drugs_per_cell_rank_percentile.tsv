@@ -1,0 +1,13 @@
+drug	cell_line	positive_targets	best_rank	rank_percentile_from_top	hit_matched_toppercent	hit_top5pct	hit_top10pct	drug_label
+budesonide	A549	NR3C1	54	0.32563468612434	1	1	1	Budesonide
+budesonide	NCI-H460	NR3C1	484	2.91865163118856	0	1	1	Budesonide
+budesonide	SW480	NR3C1	34	0.2050292468190299	1	1	1	Budesonide
+clobetasol propionate	A549	NR3C1	6	0.03618163179159	1	1	1	Clobetasol propionate
+clobetasol propionate	NCI-H460	NR3C1	479	2.88850027136223	0	1	1	Clobetasol propionate
+clobetasol propionate	SW480	NR3C1	28	0.1688476150274299	1	1	1	Clobetasol propionate
+methylprednisolone succinate	A549	NR3C1	7	0.04221190375685	1	1	1	Methylprednisolone succinate
+methylprednisolone succinate	NCI-H460	NR3C1	75	0.45227039739492	1	1	1	Methylprednisolone succinate
+methylprednisolone succinate	SW480	NR3C1	450	2.71362238436953	0	1	1	Methylprednisolone succinate
+triamcinolone	A549	NR3C1	10	0.0603027196526499	1	1	1	Triamcinolone
+triamcinolone	NCI-H460	NR3C1	84	0.50654284508231	1	1	1	Triamcinolone
+triamcinolone	SW480	NR3C1	14	0.08442380751371	1	1	1	Triamcinolone

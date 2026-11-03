@@ -1,0 +1,2 @@
+n_drugs	r_squared	adjusted_r_squared	formula	covariance	interpretation
+405	0.24816992937257265	0.22908794788456688	gain_pp ~ C(moa_class) + baseline + n_contexts + log_targets	HC3	exploratory sensitivity only; no multiplicity correction or causal interpretation

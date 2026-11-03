@@ -1,0 +1,4 @@
+{
+  "variant": "r246_joint_lm0p5_sc0p15_mn2p5",
+  "checkpoint": "checkpoints/r246_joint_lm0p5_sc0p15_mn2p5/whole_model_checkpoint.pth"
+}

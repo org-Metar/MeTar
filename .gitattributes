@@ -1,0 +1,30 @@
+* text=auto
+.gitattributes text eol=lf
+.gitignore text eol=lf
+*.md text eol=lf
+
+*.py text eol=lf
+*.sh text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.ymal text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+*.tsv text eol=lf
+*.csv text eol=lf
+
+*.png binary
+*.xlsx binary
+
+# Preserve tracked scientific inputs and source snapshots byte-for-byte.
+
+manifests/** -text
+training/** -text
+analysis/** -text
+vendor/** -text
+comparators/** -text
+figures/** -text
+preprocessing/** -text
+data/** -text
