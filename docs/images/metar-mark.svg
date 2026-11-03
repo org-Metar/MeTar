@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">MeTar</title>
+  <desc id="desc">A blue and teal network forming the letter M.</desc>
+  <rect x="1" y="1" width="126" height="126" rx="30" fill="#F3F8FB" stroke="#DCE9EE"/>
+  <path d="M28 92V36L64 70L100 36V92" fill="none" stroke="#244B63" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 36L28 92M64 70L100 92M64 70L100 36" fill="none" stroke="#8EBDBB" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="28" cy="36" r="9" fill="#3985C7"/>
+  <circle cx="28" cy="92" r="7" fill="#3985C7"/>
+  <circle cx="64" cy="70" r="9" fill="#244B63"/>
+  <circle cx="100" cy="36" r="9" fill="#41A297"/>
+  <circle cx="100" cy="92" r="7" fill="#41A297"/>
+</svg>

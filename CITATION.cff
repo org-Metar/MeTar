@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use MeTar in your research, please cite this software."
+message: "If you find MeTar useful for your research, please consider citing our paper."
 type: software
 title: MeTar
 authors:
@@ -17,6 +17,24 @@ version: "0.2.0"
 date-released: "2026-11-03"
 repository-code: "https://github.com/org-Metar/MeTar"
 url: "https://github.com/org-Metar/MeTar"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Li
+      given-names: Wannian
+    - family-names: Zhang
+      given-names: Ying
+    - family-names: Liu
+      given-names: Hong
+    - family-names: Huang
+      given-names: Xun
+    - family-names: Liu
+      given-names: Qi
+  title: >-
+    Generalizable phenotype-inverse identification of compound targets from
+    perturbational omics
+  journal: Submitted
+  year: 2026
 abstract: >-
   MeTar ranks candidate drug targets from perturbation-response data. The
   software supports bulk expression, direct and support-conditioned prediction
