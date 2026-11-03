@@ -1,64 +1,95 @@
 # Installation
 
-Use Python 3.11 for the checked route. Package metadata accepts Python 3.10 or
-newer; the captured third-party comparators have separate environment needs.
-All commands below run from the code repository root.
+Use Python 3.11 for the checked CPU workflow. Package metadata accepts Python
+3.10 or newer; the retained third-party comparators have separate environment
+requirements. The prediction package and large model/data downloads are installed
+separately.
 
-## Get the code
+## 1. Get the code
 
-With access to the repository:
+Install [Git](https://git-scm.com/downloads) and
+[uv](https://docs.astral.sh/uv/getting-started/installation/), then open a terminal:
 
 ```bash
 git clone https://github.com/org-Metar/MeTar.git
 cd MeTar
-```
-
-## CPU
-
-Install [uv](https://docs.astral.sh/uv/), then create an environment and install
-the CPU PyTorch wheel before the package:
-
-```bash
 uv venv --python 3.11
-uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-uv pip install -e ".[dev,single-cell,parquet]"
 ```
 
-## NVIDIA GPU
+Run the following commands from this `MeTar` directory. You do not need a GitHub
+account to clone the public repository or download its release assets.
 
-Choose a compatible CUDA wheel for your platform and driver using the
-[PyTorch installation selector](https://pytorch.org/get-started/locally/).
-The following is a CUDA 12.8 example, not a separately validated project runtime:
+## 2. Activate the environment
 
-```bash
-uv venv --python 3.11
-uv pip install torch --index-url https://download.pytorch.org/whl/cu128
-uv pip install -e ".[dev,single-cell,parquet]"
-```
-
-## Activate and verify
+**Linux/macOS (Bash or Zsh):**
 
 ```bash
-# Linux/macOS
 source .venv/bin/activate
 ```
 
+**Windows PowerShell:**
+
 ```powershell
-# Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 ```
+
+If your PowerShell policy blocks activation, use the environment's executables
+directly, for example `.\.venv\Scripts\python.exe` instead of `python` and
+`.\.venv\Scripts\metar.exe` instead of `metar`. To target this environment
+explicitly during installation, add `--python .venv` to each `uv pip install`
+command below.
+
+Activate this environment again whenever you open a new terminal. Check that
+`python` points to it:
+
+```bash
+python -c "import sys; print(sys.executable)"
+```
+
+## 3. Install PyTorch and MeTar
+
+### CPU
+
+Install the CPU PyTorch wheel, then the package with H5AD and Parquet support:
+
+```bash
+uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+uv pip install -e ".[single-cell,parquet]"
+```
+
+### NVIDIA GPU
+
+Use this route instead of the CPU wheel when GPU execution is needed. Select a
+compatible wheel for your platform and driver using the official
+[PyTorch installation selector](https://pytorch.org/get-started/locally/).
+The CUDA 12.8 commands below are an example, not a separately validated project
+runtime:
+
+```bash
+uv pip install torch --index-url https://download.pytorch.org/whl/cu128
+uv pip install -e ".[single-cell,parquet]"
+```
+
+## 4. Verify the installation
 
 ```bash
 python -c "import sys, torch; print(sys.version); print(torch.__version__); print('CUDA:', torch.cuda.is_available())"
 metar describe
 metar predict --help
-python -m pytest -q
 ```
 
-Keep this environment active for the remaining `python` and `metar` commands.
-Prediction defaults to CPU. Add `--device cuda:0` to request the first GPU;
-the current prediction API falls back to CPU when CUDA is unavailable. Check
-the printed device availability when GPU execution is required.
+`metar describe` lists the six prediction workflows and available training
+stages. It does not require downloaded weights. Prediction defaults to CPU;
+add `--device cuda:0` for the first GPU. The prediction API falls back to CPU
+when CUDA is unavailable, so check the printed availability if GPU execution
+is required.
+
+The optional tests can be run after installing the development extra:
+
+```bash
+uv pip install -e ".[dev]"
+python -m pytest -q
+```
 
 ## Optional dependencies
 
@@ -67,17 +98,22 @@ the printed device availability when GPU execution is required.
 | `single-cell` | Read `.h5ad` query files |
 | `parquet` | Read/write Parquet |
 | `training` | Selected scratch-training stages and public data preparation |
-| `tahoe-preprocessing` | Replay the released Tahoe projection and assemble X128 |
-| `plotting` | Render manuscript figures; Arial is supplied separately |
+| `tahoe-preprocessing` | Replay the saved Tahoe projection and assemble X128 |
+| `plotting` | Render computational manuscript figures; Arial is supplied separately |
 | `dev` | Run the lightweight test suite |
 
-Add an extra without recreating the environment, for example:
+Add an extra to the active environment without recreating it:
 
 ```bash
+uv pip install -e ".[tahoe-preprocessing]"
 uv pip install -e ".[training]"
 uv pip install -e ".[plotting]"
 ```
 
-The code checkout contains no large pretrained weights. Continue with
-[data setup](data.md), then the [prediction guide](usage.md). The current runtime and historical
-comparison limits are documented in [reproduction](reproduction.md).
+For the Bash-based archived evaluation and training workspace scripts, use Linux
+or WSL. The prepared-query prediction commands use the Python CLI.
+
+Continue with the [PDF-3 quick start](quickstart.md) for a complete runnable
+example, or [models and data setup](data.md) for other workflows.
+[Common problems](troubleshooting.md) and
+[reproduction limits](reproduction.md) cover preparation and environment issues.

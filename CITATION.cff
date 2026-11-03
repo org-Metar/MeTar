@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use MeTar in your research, please cite this software."
+type: software
+title: MeTar
+authors:
+  - family-names: Li
+    given-names: Wannian
+  - family-names: Zhang
+    given-names: Ying
+  - family-names: Liu
+    given-names: Hong
+  - family-names: Huang
+    given-names: Xun
+  - family-names: Liu
+    given-names: Qi
+version: "0.2.0"
+date-released: "2026-11-03"
+repository-code: "https://github.com/org-Metar/MeTar"
+url: "https://github.com/org-Metar/MeTar"
+abstract: >-
+  MeTar ranks candidate drug targets from perturbation-response data. The
+  software supports bulk expression, direct and support-conditioned prediction
+  in new cell lines, single-cell transcriptomics, proteomics, and consensus
+  across cell lines.
+keywords:
+  - drug-target identification
+  - perturbational omics
+  - meta-learning
+  - single-cell transcriptomics
+  - proteomics
