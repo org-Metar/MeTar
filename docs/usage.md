@@ -4,9 +4,15 @@ Install MeTar using [installation.md](installation.md), download the required
 [models and data](data.md), and set `METAR_ARTIFACT_ROOT` before running these
 commands. Run from the repository root with the environment active.
 
+New users can start with the complete [PDF-3 quick start](quickstart.md). For an
+existing dataset, select a workflow below, prepare its input representation and
+run its command. See [troubleshooting](troubleshooting.md) for common errors.
+
 ## Start with a real PDF-3 query
 
-This example uses a prepared query shipped with the model's reference data:
+This example uses a prepared query shipped with the model's reference data.
+Set `METAR_ARTIFACT_ROOT` as shown in [data setup](data.md#set-the-artifact-root)
+before the `metar` commands:
 
 ```bash
 python scripts/download_data.py --archive models_and_representations.tar.gz --archive result_data.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
@@ -41,6 +47,12 @@ Prediction defaults to CPU. Add `--device cuda:0` for a CUDA-enabled environment
 check `torch.cuda.is_available()` first, because the prediction API falls back
 to CPU when CUDA is unavailable. Explicit checkpoint, target-table and batching
 options are listed by `metar predict SCENARIO --help`.
+
+All prediction branches except consensus use weights from
+`models_and_representations.tar.gz`. The single-cell projection is an additional
+download when starting from raw Tahoe plates; consensus uses already generated
+prediction tables. Model downloads alone do not supply an independent assay's
+query table. The [data guide](data.md) lists archive contents and external inputs.
 
 ## Prepare input files
 
@@ -261,12 +273,19 @@ does not train or update model weights.
 
 ## Read outputs and check inputs
 
-Output suffix selects TSV, CSV, their compressed forms, or Parquet. Default
-long-format columns include:
+Output suffix selects TSV, CSV, their compressed forms, or Parquet. In the
+usual long format, each row is one query-target pair:
 
-```text
-query_id  scenario  candidate_count  target  score  rank  rank_fraction  rank_percent
-```
+| Column | Meaning |
+|---|---|
+| `query_id` | Input query identifier |
+| `scenario` | Prediction workflow recorded by the model interface |
+| `candidate_count` | Size of the complete candidate space, before any `--top-k` filtering |
+| `target` | Candidate target identifier |
+| `score` | Model score, ranked in descending order |
+| `rank` | Position in the query's target ranking, starting at 1 |
+| `rank_fraction` | `rank / candidate_count` |
+| `rank_percent` | `100 * rank / candidate_count` |
 
 Scenario metadata can include `cell_line`, `cells_used` and support information.
 Larger scores rank first; `rank=1` is the best target. `rank_percent` is

@@ -77,3 +77,6 @@ secrets/
 data/*
 !data/plot_sources/
 !data/plot_sources/**
+
+# Small documentation graphics displayed in the README.
+!docs/images/*.png
