@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_NO_PROGRESS: "1"
+  CUDA_VISIBLE_DEVICES: ""
+
+jobs:
+  tests:
+    name: CPU tests / ${{ matrix.os }} / Python 3.11
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.10.7"
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          cache-suffix: cpu-tests-${{ matrix.os }}
+      - name: Install locked CPU and test dependencies
+        run: uv sync --locked --extra dev --extra training --extra plotting --extra tahoe-preprocessing
+      - name: Verify CPU installation
+        run: uv run --no-sync python -c "import torch; assert torch.version.cuda is None, torch.__version__; print(torch.__version__)"
+      - name: Run the complete test suite
+        run: uv run --no-sync python -m pytest -q --basetemp="${{ runner.temp }}/mt" --junitxml=ci-results/pytest.xml
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: tests-${{ matrix.os }}-py311
+          path: ci-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  release:
+    name: Release files and installed wheel
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.10.7"
+          python-version: "3.11"
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          cache-suffix: cpu-release
+      - name: Install locked CPU dependencies
+        run: uv sync --locked
+      - name: Check local links and source hygiene
+        run: uv run --no-sync python tools/check_release.py --report ci-results/source.json
+      - name: Build wheel and source distribution
+        run: uv build --out-dir dist
+      - name: Check distributions and wheel outside the checkout
+        run: uv run --no-sync python tools/check_release.py --dist-dir dist --wheel-smoke --report ci-results/release.json
+      - name: Upload release check results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: release-checks-py311
+          path: |
+            ci-results/
+            dist/
+          if-no-files-found: ignore
+          retention-days: 14

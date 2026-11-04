@@ -8,7 +8,8 @@ separately.
 ## 1. Get the code
 
 Install [Git](https://git-scm.com/downloads) and
-[uv](https://docs.astral.sh/uv/getting-started/installation/), then open a terminal:
+[uv](https://docs.astral.sh/uv/getting-started/installation/) 0.10.7 or newer,
+then open a terminal:
 
 ```bash
 git clone https://github.com/org-Metar/MeTar.git
@@ -35,9 +36,8 @@ source .venv/bin/activate
 
 If your PowerShell policy blocks activation, use the environment's executables
 directly, for example `.\.venv\Scripts\python.exe` instead of `python` and
-`.\.venv\Scripts\metar.exe` instead of `metar`. To target this environment
-explicitly during installation, add `--python .venv` to each `uv pip install`
-command below.
+`.\.venv\Scripts\metar.exe` instead of `metar`. The `uv sync` commands below
+target the project's `.venv` even without activation.
 
 Activate this environment again whenever you open a new terminal. Check that
 `python` points to it:
@@ -46,34 +46,49 @@ Activate this environment again whenever you open a new terminal. Check that
 python -c "import sys; print(sys.executable)"
 ```
 
-## 3. Install PyTorch and MeTar
+## 3. Choose an installation profile
+
+The repository's `uv.lock` records both profiles. Each installs MeTar in
+editable mode with H5AD (`single-cell`) and Parquet support. Choose one profile
+for the environment; the CPU and CUDA groups are mutually exclusive.
 
 ### CPU
 
-Install the CPU PyTorch wheel, then the package with H5AD and Parquet support:
+The default profile uses CPU PyTorch, including on machines with an NVIDIA GPU:
 
 ```bash
-uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-uv pip install -e ".[single-cell,parquet]"
+uv sync --locked
 ```
 
 ### NVIDIA GPU
 
-Use this route instead of the CPU wheel when GPU execution is needed. Select a
-compatible wheel for your platform and driver using the official
-[PyTorch installation selector](https://pytorch.org/get-started/locally/).
-A Linux environment for the complete training workflow uses Python 3.11 and
-PyTorch `2.14.1+cu126`:
+Use the CUDA 12.6 profile on Linux or Windows with a compatible NVIDIA GPU and
+driver. Disable the default groups when selecting `cu126`:
 
 ```bash
-uv pip install "torch==2.14.1" --index-url https://download.pytorch.org/whl/cu126
-uv pip install -e ".[single-cell,parquet]"
+uv sync --locked --no-default-groups --group cu126
 ```
+
+The profile chooses the PyTorch build; `--device` chooses the device used by a
+command. Check driver compatibility with the official
+[PyTorch installation guidance](https://pytorch.org/get-started/locally/).
+
+### Locked PyTorch versions
+
+| Profile | PyTorch build on Linux/Windows | Wheel index |
+|---|---|---|
+| Default `cpu` | `2.14.1+cpu` | [PyTorch CPU](https://download.pytorch.org/whl/cpu) |
+| `cu126` | `2.14.1+cu126` | [PyTorch CUDA 12.6](https://download.pytorch.org/whl/cu126) |
+
+Python 3.11 is the recommended interpreter for these profiles. Package metadata
+continues to accept Python 3.10 or newer; wheel availability also depends on the
+operating system and architecture. MeTar does not require `torchvision` or
+`torchaudio`.
 
 ## 4. Verify the installation
 
 ```bash
-python -c "import sys, torch; print(sys.version); print(torch.__version__); print('CUDA:', torch.cuda.is_available())"
+python -c "import sys, torch; print(sys.version); print('PyTorch:', torch.__version__); print('CUDA build:', torch.version.cuda); print('CUDA available:', torch.cuda.is_available()); print('Visible GPUs:', torch.cuda.device_count())"
 metar describe
 metar predict --help
 ```
@@ -86,31 +101,48 @@ GPU; an unavailable explicit CUDA request is an error. See
 [runtime reporting and device selection](runtime.md) for progress, quiet mode
 and CUDA visibility.
 
-The optional tests can be run after installing the development extra:
+Run the lightweight tests with the default CPU profile and development extra:
 
 ```bash
-uv pip install -e ".[dev]"
+uv sync --locked --extra dev
 python -m pytest -q
 ```
+
+The repository's [CI workflow](../.github/workflows/ci.yml) runs the CPU test
+suite on Linux and Windows with Python 3.11. A Linux job also checks local
+documentation links and distribution contents, builds the wheel and source
+archive, and checks the installed wheel outside the checkout. These jobs use
+the CPU profile; GPU execution requires a separate CUDA-enabled environment.
 
 ## Optional dependencies
 
 | Extra | Use |
 |---|---|
-| `single-cell` | Read `.h5ad` query files |
-| `parquet` | Read/write Parquet |
+| `single-cell` | Read `.h5ad` query files; included in both profiles |
+| `parquet` | Read/write Parquet; included in both profiles |
 | `training` | Selected scratch-training stages and public data preparation |
 | `tahoe-preprocessing` | Replay the saved Tahoe projection and assemble X128 |
 | `plotting` | Render computational manuscript figures; Arial is supplied separately |
 | `dev` | Run the lightweight test suite |
 
-Add an extra to the active environment without recreating it:
+Add extras with `uv sync`, retaining the same profile flags. For example, add
+training dependencies to the CPU profile:
 
 ```bash
-uv pip install -e ".[tahoe-preprocessing]"
-uv pip install -e ".[training]"
-uv pip install -e ".[plotting]"
+uv sync --locked --extra training
 ```
+
+For the CUDA profile, keep `--no-default-groups --group cu126`:
+
+```bash
+uv sync --locked --no-default-groups --group cu126 --extra training
+```
+
+Replace `training` with `tahoe-preprocessing`, `plotting` or `dev` as needed.
+Repeat `--extra` to retain several extras, such as
+`--extra training --extra plotting`. Each sync makes `.venv` match the requested
+profile and extras, so include every extra you still need. A command without
+the CUDA profile flags selects the default CPU profile.
 
 For the Bash-based archived evaluation and training workspace scripts, use Linux
 or WSL. The prepared-query prediction commands use the Python CLI.

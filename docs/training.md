@@ -19,11 +19,16 @@ Combining predictions across cell lines also needs no extra model training.
 ## Install and place the inputs
 
 Run commands from the repository root in the environment described in
-[installation](installation.md):
+[installation](installation.md). For the NVIDIA GPU commands below, add the
+training extra while retaining the CUDA profile:
 
 ```bash
-uv pip install -e ".[training]"
+uv sync --locked --no-default-groups --group cu126 --extra training
 ```
+
+For CPU stages, use `uv sync --locked --extra training`. See
+[optional dependencies](installation.md#optional-dependencies) to combine extras
+with the selected profile.
 
 The code checkout, artifact root and new training directory are separate:
 

@@ -14,10 +14,12 @@ figures supplied by the experimental collaborators are not reproduced here.
 
 ## Render a figure
 
-Install plotting dependencies and make Arial available:
+Install plotting dependencies and make Arial available. This example uses the
+default CPU profile; see [optional dependencies](installation.md#optional-dependencies)
+when retaining a CUDA profile:
 
 ```bash
-uv pip install -e ".[plotting]"
+uv sync --locked --extra plotting
 python scripts/plot_figures.py render fig2g --output outputs/fig2g
 python scripts/plot_figures.py render fig3f --output outputs/fig3f
 python scripts/plot_figures.py render fig7 --output outputs/fig7
