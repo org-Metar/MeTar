@@ -72,7 +72,7 @@ Both overview images are excerpts from the manuscript figure.
 ### Install
 
 Python **3.11 is recommended**. Create and activate an environment with
-[uv](https://docs.astral.sh/uv/):
+[uv](https://docs.astral.sh/uv/) **0.10.7 or newer**:
 
 ```bash
 git clone https://github.com/org-Metar/MeTar.git
@@ -88,21 +88,20 @@ Use `.\.venv\Scripts\Activate.ps1` instead of the final activation command.
 
 </details>
 
-Install CPU PyTorch and MeTar:
+Install the locked CPU profile, including H5AD and Parquet support:
 
 ```bash
-uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-uv pip install -e ".[single-cell,parquet]"
+uv sync --locked
 metar describe
 ```
 
-For CUDA, choose a wheel from the
-[PyTorch installation selector](https://pytorch.org/get-started/locally/).
+For NVIDIA GPUs, use `uv sync --locked --no-default-groups --group cu126`
+instead. The [installation guide](docs/installation.md) lists the locked
+versions, platform requirements and commands for adding optional dependencies.
 Prediction and training default to `--device auto`; use `--device cpu` to
 require CPU or `--device cuda:0` to require the first visible GPU. See
 [runtime reporting and device selection](docs/runtime.md) for progress, logs
-and CUDA errors. The [installation guide](docs/installation.md) covers other
-dependencies and platform details.
+and CUDA errors.
 
 ### Download the pretrained models
 
@@ -242,12 +241,16 @@ output fields and the Python API. For errors, see
 ## 4 · Training and model reuse
 
 Training workflows range from reusing the learned target space to learning the
-complete model. Choose by **which components need new training**. Install the
-training extra first:
+complete model. Choose by **which components need new training**. For the
+NVIDIA GPU commands below, add the training extra with the CUDA profile:
 
 ```bash
-uv pip install -e ".[training]"
+uv sync --locked --no-default-groups --group cu126 --extra training
 ```
+
+For CPU stages, use `uv sync --locked --extra training`. See
+[optional dependencies](docs/installation.md#optional-dependencies) to retain
+your selected profile when adding extras.
 
 The commands below create separate workspaces and use prepared training data
 under `../metar_artifacts`. The linked guides list exactly which inputs are

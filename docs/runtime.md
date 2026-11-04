@@ -81,11 +81,13 @@ metar train --stage closed-bulk --workspace ../metar-training --device auto > tr
 Use `> training.details.log 2> training.progress.log` to retain both streams
 without live terminal output.
 
-Install the training extra in the active environment before running a
-[prepared training workspace](training.md):
+For the NVIDIA GPU command below, install the training extra with the CUDA
+profile before running a [prepared training workspace](training.md).
+See [optional dependencies](installation.md#optional-dependencies) for CPU
+installation and combining extras:
 
 ```bash
-uv pip install -e ".[training]"
+uv sync --locked --no-default-groups --group cu126 --extra training
 metar train --stage single-cell --cell-line A549 --workspace ../metar-training-a549 --device cuda:0
 ```
 
@@ -105,7 +107,7 @@ near tied ranks; see
 | CUDA index unavailable | Check `CUDA_VISIBLE_DEVICES` and use the index within the visible devices. |
 | Invalid batch size, empty queries, nonfinite features or mismatched targets | Correct the named input or option. Batch sizes must be positive; queries and target tables must be nonempty and aligned. Follow the scenario's [input guide](usage.md). |
 | Empty or unannotated support | Supply separate support responses with at least one valid target per row. Every supplied row must satisfy the input requirements. See [cross-cell prediction](prediction/cross-cell.md). |
-| Missing training inputs or optional modules | Install `.[training]` in the executing environment and check the selected stage's inputs with `--check-only`; see [training setup](training.md). |
+| Missing training inputs or optional modules | Add the `training` extra with your selected [installation profile](installation.md#optional-dependencies) and check the selected stage's inputs with `--check-only`; see [training setup](training.md). |
 
 Lower `--batch-size` for bulk, full-space, adapted cross-cell or proteomics
 prediction when device memory is insufficient. Single-cell loading can still

@@ -8,10 +8,10 @@ under `inputs/` in the [prediction guide](usage.md) refer to files you prepare.
 
 | Symptom | What to check or do |
 |---|---|
-| `metar` is not found, or `No module named metar` | Activate `.venv`, run `uv pip install -e .` from the repository root, then run `metar describe`. Check `python -c "import sys; print(sys.executable)"` to confirm the interpreter. |
-| PowerShell blocks `Activate.ps1` | Use `.\.venv\Scripts\python.exe` and `.\.venv\Scripts\metar.exe` directly; add `--python .venv` to the installation commands to target that environment. |
-| H5AD or Parquet dependencies are missing | Install the corresponding extra in the same environment: `uv pip install -e ".[single-cell,parquet]"`. |
-| GPU was requested but CUDA is unavailable | Check `python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"`. Install a compatible wheel using the [PyTorch selector](https://pytorch.org/get-started/locally/), or run explicitly with `--device cpu`. |
+| `metar` is not found, or `No module named metar` | Activate `.venv`, sync your [installation profile](installation.md#3-choose-an-installation-profile) from the repository root, then run `metar describe`. The default CPU command is `uv sync --locked`. Check `python -c "import sys; print(sys.executable)"` to confirm the interpreter. |
+| PowerShell blocks `Activate.ps1` | Use `.\.venv\Scripts\python.exe` and `.\.venv\Scripts\metar.exe` directly. `uv sync` targets the project's `.venv` without activation. |
+| H5AD or Parquet dependencies are missing | Both locked profiles include these dependencies. Sync the selected [installation profile](installation.md#3-choose-an-installation-profile) in the same checkout. |
+| GPU was requested but CUDA is unavailable | Check `python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"`. Select the [CUDA profile](installation.md#nvidia-gpu) and check the NVIDIA driver, or run explicitly with `--device cpu`. |
 
 ## Downloads and artifact paths
 

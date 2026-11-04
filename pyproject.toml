@@ -39,3 +39,29 @@ namespaces = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[dependency-groups]
+prediction = ["anndata>=0.10", "pyarrow>=14.0"]
+cpu = [{ include-group = "prediction" }, "torch==2.14.1"]
+cu126 = [{ include-group = "prediction" }, "torch==2.14.1+cu126"]
+
+[tool.uv]
+required-version = ">=0.10.7"
+default-groups = ["cpu"]
+conflicts = [[{ group = "cpu" }, { group = "cu126" }]]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu", group = "cpu" },
+    { index = "pytorch-cu126", group = "cu126" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true

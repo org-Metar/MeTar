@@ -130,10 +130,12 @@ already present in the artifact root without writing. Run the import before
 checking files from a new source directory.
 
 A missing derived bulk cache is reported as `derive_with_build_h07_cache`.
-Build it after placing the bulk inputs:
+Build it after placing the bulk inputs. This example uses the default CPU
+profile; see [optional dependencies](installation.md#optional-dependencies)
+when retaining a CUDA profile:
 
 ```bash
-uv pip install -e ".[training]"
+uv sync --locked --extra training
 python scripts/prepare_bulk_data.py --package ../metar_artifacts --device cpu
 ```
 

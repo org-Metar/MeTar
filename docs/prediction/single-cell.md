@@ -69,11 +69,14 @@ manuscript's fixed cell pools.
 The small bundled example already contains X128. For your raw plates, obtain
 upstream data separately, or place existing processed files following the
 [data guide](../data.md#place-separately-obtained-public-inputs). For the original
-raw plate schema, reuse the released projection:
+raw plate schema, reuse the released projection. The installation line uses
+the default CPU profile; see
+[optional dependencies](../installation.md#optional-dependencies) when retaining
+a CUDA profile:
 
 ```bash
 python scripts/download_data.py --archive tahoe_projection.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
-uv pip install -e ".[tahoe-preprocessing]"
+uv sync --locked --extra tahoe-preprocessing
 python scripts/prepare_single_cell.py --input-dir ../raw_tahoe_plates --assets ../metar_artifacts/data/preprocessing/tahoe --output-dir ../prepared/tahoe_x128 --check-only
 ```
 
