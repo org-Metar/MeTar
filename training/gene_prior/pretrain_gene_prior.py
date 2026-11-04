@@ -1664,29 +1664,6 @@ def run_all(args: argparse.Namespace) -> None:
     if args.readout_only:
         run_readout_only(args)
         return
-    (ROOT / "task_plan.md").write_text(
-        "\n".join(
-            [
-                "# Round210 Dim-256 KG Checkpoint Sweep Plan",
-                "",
-                "## Goal",
-                "Retune dim=256 KG checkpoint coverage using Round205 successful checkpoint-sweep discipline, then run selected readout configurations.",
-                "",
-                "## Fixed Evaluation",
-                "- PC3 drug-mean",
-                "- 668 targets",
-                "- target anchors use graph-owned Protein/TF/RBP/mRNA entities before fallback",
-                "- train new process-only dim=256 KG checkpoints at 5/10/15/20/25/30/35/40",
-                "- KG is retrained in this round; downstream split/evaluation stay fixed",
-                "- downstream readout architecture remains Round196-style diagonal target-delta readout",
-                "- use the readout settings that Round208 showed were informative: rstrong_map, rstrong_hit10, rbase_hit10",
-                "",
-                "## Status",
-                "Running automated Round210 256-dim KG checkpoint sweep on server.",
-            ]
-        ) + "\n",
-        encoding="utf-8",
-    )
     r176 = load_round176_module()
     _landmarks, labels, rows, x, y = r176.load_response()
     data = split_data(rows, x, y, r176)
@@ -1706,9 +1683,9 @@ def run_all(args: argparse.Namespace) -> None:
     selected.to_csv(SOURCE / "round210_validation_selected_by_checkpoint_readout.tsv", sep="\t", index=False)
     best = selected.sort_values(["val_Hit@10_at_best_epoch", "val_MeanAP_at_best_epoch", "Hit@10", "MeanAP"], ascending=False).head(1)
     lines = [
-        "# Round210 dim-256 KG checkpoint sweep report",
+        "# Knowledge-graph checkpoint comparison",
         "",
-        "New process-only dim=256 KG checkpoints were trained with full Round205-style checkpoint coverage. Each checkpoint was evaluated with selected Round208 readout settings.",
+        "Process-only dim=256 KG checkpoints are evaluated with the selected readout configurations.",
         "",
         "## Best validation-selected checkpoint in this run",
         "",

@@ -1,8 +1,7 @@
 # Train a single-cell response encoder
 
-Use this route to train the single-cell response branch while reusing the
-learned target space. It does not repeat bulk response-model or PPI graph
-training. To use an existing checkpoint, follow the
+Use this route to train the single-cell response branch while keeping the
+learned target space fixed. To use an existing checkpoint, follow the
 [single-cell prediction guide](../prediction/single-cell.md).
 
 ## What is trained
@@ -38,8 +37,7 @@ Windows path considerations and checks, see [training setup](../training.md).
 The H5AD `X` matrix has one cell per row and exactly 128 numeric features per
 cell. `obs['drug']` identifies the compound; the reader trims whitespace and
 converts names to lowercase. The coordinates must follow the expected Tahoe
-feature construction. Equal dimensionality does not make a new projection
-compatible with a pretrained model. The saved
+feature construction, including its projection basis and gene order. The saved
 [projection and raw-data recipe](../usage.md#prepare-x128-from-raw-tahoe-plates)
 are provided for that purpose.
 
@@ -58,23 +56,21 @@ and held-out targets support evaluation.
 
 Prepare with `--copy-inputs`, then replace the selected H5AD and label CSV
 inside the workspace. Update its protocol JSON with new compound and target
-memberships; a new dataset cannot reuse old compound split lists unchanged.
-Keep training, validation and test compounds disjoint, and keep held-out target
-labels out of the training target list. The compatibility copy at
-`compat/home/lwn/claude/sc/data/` must refer to the same replaced data; when
-`--copy-inputs` is used, replace that copy too. The protocol compatibility copy
-is under
-`compat/home/lwn/claude/manuscript/write/sc_agg_upgrade_20260321/derived_tables/`.
+memberships for the new dataset. Keep training, validation and test compounds
+disjoint, and keep held-out target
+labels out of the training target list. Update the single-cell data and protocol
+[compatibility copies](../training.md#compatibility-input-paths) together with
+the canonical files when inputs are copied.
 
 This interface retains the 128-feature architecture, 16,583-target table and
 three selected cell-line configurations. Another feature dimension, candidate
-space or cell-line configuration requires changes to the training source and
-protocol checks. There is no `--new-modality` option.
+space or cell-line configuration requires changes to the model and protocol
+configuration in the workspace sources.
 
 ## Find the outputs
 
 The run is written under `training_runs/single-cell_A549/` (or the requested
-private output directory), with encoder checkpoint, training history,
+output directory within the workspace), with encoder checkpoint, training history,
 validation/test metrics and per-compound results below `train_A549/`.
 The interface checkpoint is copied to
 `checkpoints/selected/round260_A549_seed2043.pth`.

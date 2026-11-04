@@ -934,7 +934,7 @@ def run_one_variant(variant: str, device_arg: str) -> None:
 def write_leakage_audit() -> None:
     audit_path = SOURCE / "heterograph_node_edge_audit.tsv"
     lines = [
-        "# Round176 leakage and graph audit",
+        "# Leakage and graph audit",
         "",
         "- Graph source: PertKGE process graph.",
         "- `HAS_BINDING_TO` and `CID:` drug nodes are not used by the graph operator parser.",
@@ -948,40 +948,6 @@ def write_leakage_audit() -> None:
         audit = pd.read_csv(audit_path, sep="\t")
         lines += ["## Graph operator coverage", "", markdown_table(audit)]
     (QA / "leakage_and_graph_audit.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def write_optimization_lessons() -> None:
-    lines = [
-        "# Round176 structural optimization lessons",
-        "",
-        "Starting point: Round175 `hgtlite_target_attention` was the better graph-prior branch by test Hit@10, but it underperformed the Round174 MLP baseline. The main lesson was that the graph branch should be a controlled residual on top of a strong sample encoder, not a competing weak encoder.",
-        "",
-        "## opt1_strong_base_tiny_graph",
-        "",
-        "- Change: restore the stronger Round174-style MLP base and add a very small graph residual.",
-        "- Lesson tested: graph prior must first avoid hurting a strong expression encoder.",
-        "",
-        "## opt2_scalar_relation_residual",
-        "",
-        "- Change: use a direct scalar relation residual over typed graph operators.",
-        "- Lesson tested: a low-capacity typed residual may capture useful prior without attention overfitting.",
-        "",
-        "## opt3_sample_gated_relation",
-        "",
-        "- Change: condition relation weights on each drug response sample.",
-        "- Lesson tested: different drug states may need different relation types, but sample gating can overfit if the signal is weak.",
-        "",
-        "## opt4_target_conditioned_relation",
-        "",
-        "- Change: condition relation and feature weights on the candidate target embedding.",
-        "- Lesson tested: target-specific relation routing may better model input-gene to target-gene structure.",
-        "",
-        "## opt5_consensus_graph_residual",
-        "",
-        "- Change: reduce graph evidence to signed/strong/absolute consensus statistics before a small readout.",
-        "- Lesson tested: compressing graph evidence may regularize noisy heterogeneous relations.",
-    ]
-    (QA / "optimization_lessons.md").write_text("\n".join(lines) + "\n", encoding="ascii")
 
 
 def summarize_all() -> None:
@@ -1036,9 +1002,9 @@ def summarize_all() -> None:
     test_cols = ["method", "variant", "evaluation_unit", "n_groups", "n_profiles", "Hit@1", "Hit@5", "Hit@10", "Hit@20", "Hit@50", "AUROC", "NDCG@10", "MeanAP"]
     test = combined[combined["split"].eq("test")].copy()
     lines = [
-        "# Round176 PC3 HGT-lite structural optimization result report",
+        "# PC3 structural encoder comparison",
         "",
-        "This run performs five structural optimizations of the best Round175 graph-prior branch on PC3 single seed. No manuscript or figure files were modified.",
+        "The comparison evaluates five structural encoder variants on PC3 with one seed.",
         "",
     ]
     if best is not None:
@@ -1055,13 +1021,12 @@ def summarize_all() -> None:
         "",
         markdown_table(test[[c for c in test_cols if c in test.columns]]),
         "",
-        "## Interpretation guardrail",
+        "## Evaluation units",
         "",
-        "Round176 main results use drug-mean n=465. Round90 PertKGE 300epoch is profile-level n=3829 context and should not be treated as a strict same-denominator conclusion.",
+        "MeTar results use 465 drug-mean evaluation units. The additional PertKGE reference uses 3,829 profile-level evaluation units; its sample counts are reported separately.",
     ]
     (ROOT / "round176_result_report.md").write_text("\n".join(lines) + "\n", encoding="ascii")
     write_leakage_audit()
-    write_optimization_lessons()
 
 
 def main() -> None:

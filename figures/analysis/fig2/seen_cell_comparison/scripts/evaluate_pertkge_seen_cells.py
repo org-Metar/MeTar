@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python
+#!/usr/bin/env python
 from __future__ import annotations
 
 import argparse
@@ -863,7 +863,7 @@ def summarize_runs() -> None:
     (WORKSPACE / 'method_lock.json').write_text(json.dumps(root_lock, indent=2), encoding='utf-8')
 
     lines = [
-        '# Round450 leakage and denominator audit',
+        '# Leakage and denominator audit',
         '',
         '- Included cells: ' + ', '.join(f'`{cell}`' for cell in SELECTED_CELL_LINES) + '.',
         '- Effect scopes: ' + ', '.join(f'`{scope}`' for scope in EFFECT_SCOPES) + '.',
@@ -886,36 +886,31 @@ def summarize_runs() -> None:
     else:
         report_table = pd.DataFrame()
     report_lines = [
-        '# Round450 结果报告',
+        '# Seen-cell comparator results',
         '',
-        '## 目的',
+        '## Comparison setup',
         '',
-        '本轮重训 PertKGE baseline 的 pooled 和 same-cell 两条分支，用 drug-mean / drug-cell 口径做单变量对照。唯一变量是 `effect.txt` 的表达来源：pooled 分支使用 Round88 train-cell pooled expression，same-cell 分支使用评估细胞系自身 expression。',
+        'Compare pooled and same-cell PertKGE models using drug-cell mean scores. The expression source for `effect.txt` differs between branches: pooled training-cell expression or expression from the evaluated cell line.',
         '',
-        '## 评估口径',
+        '## Evaluation units',
         '',
-        '- 主口径：drug-mean / drug-cell，因为 PertKGE 在同一 cell 内对同一 drug 只有一套固定分数。',
-        '- 附录诊断：profile-replicated；不作为主结论。',
-        '- 668-label candidate space 与 Round88 / Round252 seen-target 诊断保持一致。',
+        '- Primary unit: drug-cell mean. PertKGE produces one score vector for each compound in each cell line.',
+        '- Profile-replicated metrics are reported as an additional diagnostic.',
+        '- The comparison uses the same 668-target candidate set for all methods.',
         '',
-        '## 当前结果',
+        '## Results',
         '',
-        md_table(report_table.fillna('')) if not report_table.empty else '尚未完成三细胞系训练；脚本和审计已就绪。',
+        md_table(report_table.fillna('')) if not report_table.empty else 'No completed cell-line results are available.',
         '',
-        '## 对照解释',
+        '## Methods',
         '',
-        '- `Round252_EpiQGate` 行来自当前 MeTar 主线的 seen-cell diagnostic，作为当前模型对照。',
-        '- `pooled` 和 `same_cell` 两条 PertKGE 分支均为本轮重训结果；不再用 Round291 的 post-hoc collapse 作为正式证据。',
-        '- `Random` 的 Hit@K 按 K/668 计算。',
+        '- `Round252_EpiQGate` identifies the selected MeTar adapter in its seen-cell evaluation.',
+        '- `pooled` and `same_cell` identify separately trained PertKGE models.',
+        '- Random Hit@K is K/668.',
     ]
     if not delta.empty:
         report_lines.extend(['', '## Pooled vs same-cell delta', '', md_table(delta.fillna(''))])
-    (WORKSPACE / 'round292_result_report_zh.md').write_text('\n'.join(report_lines), encoding='utf-8')
-    try:
-        (WORKSPACE / 'round292_result_report_zh_bom.md').write_text('\n'.join(report_lines), encoding='utf-8-sig')
-    except LookupError:
-        pass
-
+    (WORKSPACE / 'comparison_summary.md').write_text('\n'.join(report_lines), encoding='utf-8')
     print(f'completed_runs={completed_runs} missing={missing_runs}')
     print(f'wrote summary files under {source_dir}')
 

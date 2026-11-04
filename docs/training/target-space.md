@@ -2,9 +2,9 @@
 
 The pretrained genome-wide model can already rank 16,583 candidate genes,
 including genes without supplied drug–target training labels. Use the
-[genome-wide prediction guide](../usage.md) for that application. This page
-is for retraining its response/target model with the selected training
-protocol.
+[genome-wide prediction guide](../prediction/genome-wide.md) for that application.
+This page is for retraining its response/target model with the selected
+training protocol.
 
 ## What is trained
 
@@ -17,8 +17,8 @@ embeddings are updated and exported again.
 
 The selected recipe keeps 16,583 genes and 668 supervised targets. Ranking
 unlabeled candidates does not require adding them as new output classes.
-Changing the graph to an arbitrary new gene set is a model/protocol change,
-not a file that can be supplied through a `--target-space` training option.
+Changing the graph to a new gene set requires corresponding model and protocol
+configuration in the training sources.
 
 ## Prepare and run
 
@@ -63,19 +63,18 @@ described in the [bulk input schema](cell-line-adapter.md#input-schema).
 The source validates the selected 16,583-candidate and 668-label counts.
 
 For new compatible bulk data, use `--copy-inputs`, replace the workspace's
-profile/label inputs and all corresponding private compatibility copies,
-then update the split records. A cache built for another dataset must not
-be retained. The released `prepare_bulk_data.py` verifies the published
-source-file hashes and audit counts: it will reject a replacement dataset.
-To build a new dataset's cache, update those source/audit contracts in a
-private copy of the builder, or produce an equivalent cache with the
+profile/label inputs and all corresponding workspace compatibility copies,
+then update the split records and rebuild the cache. The released
+`prepare_bulk_data.py` requires the published source-file hashes and expected
+dataset counts. To build a new dataset's cache, update those source contracts
+in a workspace copy of the builder, or produce an equivalent cache with the
 expected fields and ordering. Feature order and input normalization must
 remain compatible with the reused response checkpoint.
 
-For a genuinely new graph, label set, feature construction or cell-line
+For a new graph, label set, feature construction or cell-line
 protocol, adapt the training-source checks and metadata consistently. The
-selected CLI does not provide an automatic arbitrary-graph retraining
-pipeline. A full rebuild of the upstream response model is described in
+selected CLI runs the published graph configuration. A full rebuild of the
+upstream response model is described in
 the [full-model guide](full-model.md).
 
 ## Outputs
@@ -85,7 +84,7 @@ The workspace receives:
 - `checkpoints/selected/round259_e13_bce001.pth`: the newly trained model.
 - `data/processed/fullspace/round259_target_embedding.csv`: the new target
   embedding export.
-- Private run records containing training history, split definitions,
+- Run records containing training history, split definitions,
   validation selection and per-profile target-ranking results.
 
 Use the new response checkpoint with its own exported target table.

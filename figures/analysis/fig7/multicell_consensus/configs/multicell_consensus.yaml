@@ -34,4 +34,3 @@ outputs:
   scores_dir: scores/drug_level
   metrics_dir: metrics
   figures_dir: figures
-  report: multicell_consensus_report_zh.md

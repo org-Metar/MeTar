@@ -830,7 +830,7 @@ def write_report(module: Any, metrics: pd.DataFrame, history: pd.DataFrame, audi
         )
         .to_string(index=False)
     )
-    text = f"""# Round259 cross-cell full-space target embedding report
+    text = f"""# Full-space target embedding training
 
 ## Scope
 
@@ -854,7 +854,7 @@ Sample side is initialized from the Round246/Round252-family `query_encoder/quer
 {json.dumps(audits, indent=2)}
 ```
 """
-    (module.ROUND_ROOT / "round259_result_report_zh.md").write_text(text, encoding="utf-8")
+    (module.ROUND_ROOT / "training_summary.md").write_text(text, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
@@ -967,7 +967,7 @@ def main() -> None:
         ),
         encoding="utf-8",
     )
-    audit_text = f"""# Round259 audit
+    audit_text = f"""# Leakage and alignment audit
 
 - Sample encoder is initialized from Round246 whole-model `query_encoder/query_norm`: `{ROUND246_CKPT}`.
 - Round252 adapter is not used in the final full-space forward or export.

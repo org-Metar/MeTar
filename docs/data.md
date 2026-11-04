@@ -7,7 +7,7 @@ The public release can be downloaded anonymously over HTTPS.
 
 ## Download what you need
 
-List the assets without installing a download tool or signing in:
+List the available assets:
 
 ```bash
 python scripts/download_data.py --list
@@ -20,8 +20,8 @@ download the model archive:
 python scripts/download_data.py --archive models_and_representations.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
 ```
 
-These examples contain prepared computational inputs and do not require the
-complete training datasets. For the [PDF-3 reproduction](quickstart.md), also
+These examples contain prepared computational inputs. For the
+[PDF-3 reproduction](quickstart.md), also
 download the reference-data archive:
 
 ```bash
@@ -53,17 +53,16 @@ a saved credential for this subprocess without changing the default account.
 | `tahoe_projection.tar.gz` | Two NPZ files containing the fixed gene selection and saved SVD projection |
 | `training_inputs.tar.gz` | Gene-relation graph and PC3 response/target-header inputs for scratch training |
 
-The active asset list and automatic integrity checks are configured in
+The asset list and integrity checks are configured in
 [`artifact_downloads.json`](../manifests/artifact_downloads.json).
 Laboratory figures and their reproduction are not included in this code package.
 The Tahoe preprocessing recipe is in `preprocessing/tahoe_projection.ipynb` in
-the code checkout, rather than in the projection archive.
+the code checkout.
 
 For an already prepared query, the model archive is usually sufficient. Bulk
 query tables also need an explicit training feature order or the original
 landmark schema. Full manuscript evaluation and scratch training need the
-prepared public inputs below; downloading pretrained weights alone does not
-prepare these datasets. To train only a selected component, use the
+prepared public inputs below. To train a selected component, use the
 [training workspace options](training.md) to check that component's inputs
 instead of collecting every dataset first.
 
@@ -102,10 +101,8 @@ can override defaults; see `metar predict SCENARIO --help`.
 
 ## Place separately obtained public inputs
 
-The importer places existing prepared inputs; it does not download or prepare
-every upstream public dataset. A file downloaded directly from LINCS, STRING,
-Tahoe or ProteomicsDB is not necessarily equivalent to the selected processed
-file. Use the exact inputs defined by
+The importer places existing prepared inputs. Obtain the processed LINCS,
+STRING, Tahoe or ProteomicsDB files defined by
 [`pretrained_artifact_contract.json`](../manifests/pretrained_artifact_contract.json).
 
 Arrange existing files under a source directory using these relative paths:
@@ -129,11 +126,11 @@ python scripts/import_data.py --package ../metar_artifacts --source-root ../publ
 ```
 
 `--mode symlink` saves disk space when available. `--check-only` examines files
-already present in the artifact root and writes nothing; it does not check
-source files that have not been placed there.
+already present in the artifact root without writing. Run the import before
+checking files from a new source directory.
 
-A missing derived bulk cache is reported as `derive_with_build_h07_cache` and
-does not by itself fail import readiness. Build it after placing the bulk inputs:
+A missing derived bulk cache is reported as `derive_with_build_h07_cache`.
+Build it after placing the bulk inputs:
 
 ```bash
 uv pip install -e ".[training]"
@@ -156,6 +153,6 @@ metar doctor --help
 ```
 
 Doctor checks required artifacts and, when given `--input`, the file's structure
-and dimensions. It does not run inference or establish preprocessing compatibility
-from shape alone. See [usage.md](usage.md) for query formats and
+and dimensions. Check preprocessing compatibility against the selected
+workflow's input requirements. See [usage.md](usage.md) for query formats and
 [reproduction.md](reproduction.md) for the full comparison workflow.

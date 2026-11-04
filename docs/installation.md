@@ -1,8 +1,8 @@
 # Installation
 
-Use Python 3.11 for the checked CPU and NVIDIA GPU workflows. Package metadata accepts Python
-3.10 or newer; the retained third-party comparators have separate environment
-requirements. The prediction package and large model/data downloads are installed
+Python 3.11 is recommended for CPU and NVIDIA GPU workflows. Package metadata
+accepts Python 3.10 or newer; third-party comparators have separate environment
+requirements. Install the prediction package and model/data downloads
 separately.
 
 ## 1. Get the code
@@ -16,8 +16,8 @@ cd MeTar
 uv venv --python 3.11
 ```
 
-Run the following commands from this `MeTar` directory. You do not need a GitHub
-account to clone the public repository or download its release assets.
+Run the following commands from this `MeTar` directory. The public repository
+and release assets support anonymous access.
 
 ## 2. Activate the environment
 
@@ -62,8 +62,8 @@ uv pip install -e ".[single-cell,parquet]"
 Use this route instead of the CPU wheel when GPU execution is needed. Select a
 compatible wheel for your platform and driver using the official
 [PyTorch installation selector](https://pytorch.org/get-started/locally/).
-The full training and prediction checks used Python 3.11 and PyTorch
-`2.14.1+cu126` on Linux. For the same PyTorch build:
+A Linux environment for the complete training workflow uses Python 3.11 and
+PyTorch `2.14.1+cu126`:
 
 ```bash
 uv pip install "torch==2.14.1" --index-url https://download.pytorch.org/whl/cu126
@@ -120,4 +120,4 @@ the small examples included in the repository. These examples need only the
 model archive; [models and data setup](data.md) explains the download and
 artifact path. Each prediction guide explains how to substitute your own data.
 [Common problems](troubleshooting.md) and
-[reproduction limits](reproduction.md) cover preparation and environment issues.
+[reproduction requirements](reproduction.md) cover preparation and environment issues.

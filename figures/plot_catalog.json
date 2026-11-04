@@ -13,7 +13,7 @@
   "render_entries": [
     {
       "id": "fig2",
-      "title": "Figure 2: current source assembly",
+      "title": "Figure 2: vector-panel assembly",
       "renderer": "assembly:2",
       "scripts": [
         "figures/manuscript/main/figure2_assembly.py"
@@ -24,22 +24,22 @@
           "name": "Figure2_baseline.pdf",
           "sha256": "52413c86143e60d109d430a98724cb26771dbc9efb09b947c8eb4626d58115ec",
           "bytes": 238574,
-          "role": "Locked baseline retaining b-g and the original protected diagram content"
+          "role": "Vector composite containing the statistical panels and schematic layout"
         },
         {
           "name": "Figure2a_editable.pdf",
           "sha256": "9a021d3f84f73bcc032dbc7b96efaef05fd48d683621068ca5e775352919ab60",
           "bytes": 121622,
-          "role": "Native source-panel export after accepted header geometry edit"
+          "role": "Vector PDF exported from the editable panel-a schematic"
         },
         {
           "name": "Figure2a_editable.pptx",
           "sha256": "090d6ac49fc46b9915643a49a1adaf3f68acaf28ef1dc55232cb027110ab244c",
           "bytes": 166638,
-          "role": "Editable native schematic with original chart data"
+          "role": "Editable PowerPoint schematic source"
         }
       ],
-      "scope": "October14 accepted a-g full assembly; exact original header-region replacement and panel scaling. Statistical b-g values are retained in the locked vector baseline; current Fig2g also has a source-table render route."
+      "scope": "Assemble panels a-g from the vector baseline and editable panel-a export. Figure 2g also has a separate source-table renderer."
     },
     {
       "id": "fig2g",
@@ -56,11 +56,11 @@
         "data/plot_sources/figure2g/correspondence_summary.json"
       ],
       "external_assets": [],
-      "scope": "October display: eight family rows, six MOA columns; 48 cells and four BH-significant marks. Retains existing pure-cohort ratios and q values; no permutations are recomputed."
+      "scope": "Render eight target-family rows and six MOA columns using the supplied ratios and q values: 48 cells and four BH-significant marks."
     },
     {
       "id": "fig3",
-      "title": "Figure 3: current six-panel a-f assembly",
+      "title": "Figure 3: six-panel a-f assembly",
       "renderer": "fig3",
       "scripts": [
         "figures/manuscript/figure3/build_figure.py",
@@ -86,7 +86,7 @@
         {
           "name": "Figure3_20261019.pdf",
           "sha256": "023b9295c97a0b87247d9d9eea33cdc478d414be3af3c81caea1be9ca5f84708",
-          "role": "Frozen native vector panel a, cropped from formal October 19 baseline"
+          "role": "Vector source for panel a"
         }
       ],
       "scope": "Six-panel a-f assembly. Panel a uses the editable diagram export; b-f use the supplied numerical tables."
@@ -102,11 +102,11 @@
         "data/plot_sources/figure3/grouped_recovery_summary.tsv"
       ],
       "external_assets": [],
-      "scope": "Exact final f geometry/letter from the six-panel assembly: 415 compounds in 108/198/109 context groups, top-10 and top-30. Renders the archived summary without recomputing inference or intervals."
+      "scope": "Render top-10 and top-30 adapted recovery for 415 compounds in context groups of 108, 198 and 109, using the supplied summary and confidence intervals."
     },
     {
       "id": "fig4",
-      "title": "Figure 4: current source assembly",
+      "title": "Figure 4: vector-panel assembly",
       "renderer": "assembly:4",
       "scripts": [
         "figures/manuscript/main/figure4_assembly.py"
@@ -117,26 +117,26 @@
           "name": "Figure4_baseline.pdf",
           "sha256": "2fb74a5ae113fd735c1230f7fb5226309ef375912be9893f06ac2ab2c4ca2a24",
           "bytes": 1601160,
-          "role": "Accepted prepatch native composite preserving all statistical plots"
+          "role": "Vector composite containing the statistical panels and schematic layout"
         },
         {
           "name": "Figure4a_editable.pdf",
           "sha256": "d2a287dec67197e699b4321814f68de88cd070fef8607fa29e8af110e32dbb33",
           "bytes": 216723,
-          "role": "Accepted schematic source export"
+          "role": "Vector PDF exported from the editable panel-a schematic"
         },
         {
           "name": "Figure4a_editable.pptx",
           "sha256": "56d73dc802a4f7026d9206818e804dcc412b9ed07c7d22a9c5bc29503e681515",
           "bytes": 229971,
-          "role": "Editable native schematic"
+          "role": "Editable PowerPoint schematic source"
         }
       ],
-      "scope": "October19 accepted current composite: exact native panel-a replacement and 0.55mm legend-text adjustment; original plot data/geometry are reused without recomputation."
+      "scope": "Assemble the vector baseline and editable panel-a export with aligned legend labels."
     },
     {
       "id": "fig5",
-      "title": "Figure 5: current source assembly",
+      "title": "Figure 5: vector-panel assembly",
       "renderer": "assembly:5",
       "scripts": [
         "figures/manuscript/main/figure5_assembly.py"
@@ -147,20 +147,20 @@
           "name": "Figure5_baseline.pdf",
           "sha256": "47f3d8a76f2067667e6d687a999043fc2e5304bc930d09562c44521d285a7763",
           "bytes": 533130,
-          "role": "Accepted statistical/vector baseline whose exact xref is patched"
+          "role": "Vector composite containing the statistical panels and schematic layout"
         },
         {
           "name": "Figure5a_editable.pptx",
           "sha256": "b14e64310cd93ffff4570e408f8a8e1abf31b4ca0b27604d432fb669400d62ca",
           "bytes": 100757,
-          "role": "Approved native editable schematic/PowerPoint source"
+          "role": "Editable PowerPoint schematic source"
         }
       ],
-      "scope": "October19 accepted exact PDF stream patch of two axis labels; archived statistical geometry, native diagram and values stay bound to their locked source composite."
+      "scope": "Render the vector composite with the manuscript axis labels. Statistical panels and the schematic are supplied in the baseline PDF."
     },
     {
       "id": "fig6",
-      "title": "Figure 6: current source assembly",
+      "title": "Figure 6: vector-panel assembly",
       "renderer": "assembly:6",
       "scripts": [
         "figures/manuscript/main/figure6_assembly.py"
@@ -171,26 +171,26 @@
           "name": "Figure6_baseline.pdf",
           "sha256": "646c2bda6b5ba375cc3d979539c9085e2f547af257f6a78c758cfa58734b1354",
           "bytes": 102085,
-          "role": "Accepted baseline before the repaired source-panel resource replacement"
+          "role": "Vector composite containing the statistical panels and schematic layout"
         },
         {
           "name": "Figure6a_editable.pdf",
           "sha256": "eed7101cfa4188d90af81750354f2cadf6a2876e76ffa042a7e4789b29d06cb6",
           "bytes": 76047,
-          "role": "Undamaged native panel-a source export used in the final accepted repair"
+          "role": "Vector PDF exported from the editable panel-a schematic"
         },
         {
           "name": "Figure6a_review_20261019_editable.pptx",
           "sha256": "a113b8c5f90431a1eab3d205f0579fcf757c46358cd8907e5d95fb936bfa2ac5",
           "bytes": 16713,
-          "role": "Native editable source from accepted repair"
+          "role": "Editable PowerPoint schematic source"
         }
       ],
-      "scope": "October19 accepted damage-corrected source: exact resource replacement of full panel a and xlabel update; preserves original statistical plots and protected content."
+      "scope": "Assemble the vector baseline and editable panel-a export with the manuscript axis label."
     },
     {
       "id": "fig7",
-      "title": "Figure 7: current full source-table render",
+      "title": "Figure 7: LINCS and Tahoe recovery",
       "renderer": "current:7",
       "scripts": [
         "figures/manuscript/main/figure7.py"
@@ -207,7 +207,7 @@
         "figures/manuscript/figure3/rendering_style.json"
       ],
       "external_assets": [],
-      "scope": "Current October12 spacing source carried unchanged into accepted October19 delivery. Full table-to-plot route retains eight R496 sources, curve/scatter geometry, seeded point jitter and exact top-crop policy; no inference."
+      "scope": "Render the eight LINCS and Tahoe source tables, using fixed geometry and seeded point jitter."
     },
     {
       "id": "supp1",
@@ -253,7 +253,7 @@
         "data/plot_sources/supplementary/legacy/recovered_originals/Figure3_cluster_bootstrap_top5.tsv"
       ],
       "external_assets": [],
-      "scope": "Archived 20,000 whole-drug-cluster bootstrap intervals, seed 20260713, 177 clusters; draws are not rerun. Includes the two accepted October19 terminology edits: Full 16,583-gene target space; Full / target space. Fonts, geometry and statistics are retained."
+      "scope": "Render the supplied 20,000 whole-drug-cluster bootstrap intervals (seed 20260713; 177 clusters) for the 16,583-gene target space."
     },
     {
       "id": "supp4",
@@ -285,7 +285,7 @@
         "data/plot_sources/supplementary/legacy/recovered_originals/fig2_pathway_continuous_rank.tsv"
       ],
       "external_assets": [],
-      "scope": "October 14 integrated supplement; retains 179 genes and 38 GO:0010628 members. Only seeded point jitter is generated."
+      "scope": "Render the supplied pathway-context tables for 179 genes, including 38 GO:0010628 members, using seeded point jitter."
     },
     {
       "id": "supp8",
@@ -301,7 +301,7 @@
         "data/plot_sources/supplementary/biology/s11/fig2_category_descriptive.tsv"
       ],
       "external_assets": [],
-      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+      "scope": "Render the supplied MOA-category values, intervals and q values."
     },
     {
       "id": "supp9",
@@ -333,7 +333,7 @@
         "data/plot_sources/supplementary/biology/s10/tahoe_moa_recovery_summary.tsv"
       ],
       "external_assets": [],
-      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+      "scope": "Render the supplied LINCS and Tahoe MOA-recovery values, intervals and q values."
     },
     {
       "id": "supp11",
@@ -380,7 +380,7 @@
         "data/plot_sources/supplementary/biology/s11/moa_family_heatmap.tsv"
       ],
       "external_assets": [],
-      "scope": "October 14 integrated numbering; archived values, intervals and q values are retained."
+      "scope": "Render the supplied annotated-target-family and MOA composition tables."
     }
   ]
 }

@@ -206,7 +206,7 @@ def render_supplement(entry: dict, output: Path, assets: Path | None) -> None:
         module.FIG7_TERM = recovered / "fig2_pathway_continuous_rank.tsv"
         module.style()
         if number == 3:
-            # Apply the two exact October 19 accepted SVG terminology edits.
+            # Use the manuscript terminology for the full candidate target space.
             code = inspect.getsource(module.figure3)
             code = code.replace("Full 16,583-gene universe", "Full 16,583-gene target space")
             code = code.replace('Full\\nuniverse', 'Full\\ntarget space')

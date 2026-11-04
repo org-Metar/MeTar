@@ -734,9 +734,9 @@ def summarize_runs() -> None:
     (WORKSPACE / "method_lock.json").write_text(json.dumps(lock, indent=2), encoding="utf-8")
 
     audit_lines = [
-        "# Round307 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
-        "- Corrected PertKGE target-inference flow: training drugs use PC3 effect plus DTI; query drugs use target-cell effect with query DTI withheld.",
+        "- PertKGE target-inference protocol: training drugs use PC3 effect plus DTI; query drugs use target-cell effect with query DTI withheld.",
         "- Candidate space: 668 seen targets.",
         "- Official cells are taken from Round252 `official_test` drug-mean denominator.",
         "- Validation/test query `CID:` entities may appear through expression-derived effect triples only.",
@@ -749,22 +749,22 @@ def summarize_runs() -> None:
     (qa_dir / "leakage_and_denominator_audit.md").write_text("\n".join(audit_lines), encoding="utf-8")
 
     report_lines = [
-        "# Round307 结果报告",
+        "# Cross-cell PertKGE results",
         "",
-        "## 目的",
+        "## Comparison setup",
         "",
-        "本轮修正 Round306 的错误做法，按 PertKGE target-inference 逻辑重新评估跨细胞系 official held-out cells。训练药物使用 PC3 expression-derived effect triples 并提供 DTI ground truth；预测药物使用目标 held-out cell 的 expression-derived effect triples，但不提供预测药物 DTI。",
+        "Evaluate PertKGE in held-out cell lines. Training compounds use PC3 expression-derived effect triples and known DTI labels; query compounds use expression-derived effect triples from the evaluation cell line with their DTI labels reserved for evaluation.",
         "",
-        "## 主结果",
+        "## Results",
         "",
-        md_table(comp.fillna("")) if not comp.empty else "尚未完成训练。",
+        md_table(comp.fillna("")) if not comp.empty else "No completed training results are available.",
         "",
-        "## 审计说明",
+        "## Evaluation protocol",
         "",
-        "- `round307_pertkge_denominator_and_leakage_audit.tsv` 记录每个 cell 的 query effect 覆盖和 DTI 泄露检查。",
-        "- `cell_unweighted_mean` 是当前跨细胞系图文主口径；`drugcell_weighted_mean` 作为诊断保留。",
+        "- `round307_pertkge_denominator_and_leakage_audit.tsv` records query coverage and checks the separation of training and evaluation DTI labels for each cell line.",
+        "- `cell_unweighted_mean` is the primary cross-cell summary; `drugcell_weighted_mean` is an additional diagnostic.",
     ]
-    (WORKSPACE / "round307_result_report_zh.md").write_text("\n".join(report_lines), encoding="utf-8")
+    (WORKSPACE / "comparison_summary.md").write_text("\n".join(report_lines), encoding="utf-8")
     print(f"completed={completed} missing={missing}")
     print(f"wrote {source_dir}")
 

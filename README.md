@@ -17,13 +17,6 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-287F79?style=flat-square" alt="License Apache 2.0"></a>
 </p>
 
-<p align="center">
-  <a href="#prediction-workflows"><strong>Predict targets</strong></a> &nbsp; · &nbsp;
-  <a href="#training-and-reproduction">Train a model</a> &nbsp; · &nbsp;
-  <a href="#paper-reproduction">Reproduce the paper</a> &nbsp; · &nbsp;
-  <a href="#citation">Cite MeTar</a>
-</p>
-
 ---
 
 <a id="contents"></a>
@@ -114,7 +107,7 @@ dependencies and platform details.
 ### Download the pretrained models
 
 The small computational examples are included in [`examples/`](examples/README.md).
-They need only the model archive, not the complete training datasets:
+The model-based examples require the model archive:
 
 ```bash
 python scripts/download_data.py --archive models_and_representations.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
@@ -169,7 +162,7 @@ order, named tables/arrays, and substituting your own query.
 
 For a new cell line, apply the model directly or supply separate reference
 compounds and their known targets. Adapted prediction uses the trained adapter
-at inference; it does not launch a new training run.
+at inference with fixed model parameters.
 
 ```bash
 metar predict cross-cell --mode direct --cell-line HELA --input examples/inputs/cross_cell/hela/query.npz --output outputs/hela_direct.tsv
@@ -246,11 +239,11 @@ output fields and the Python API. For errors, see
 
 <a id="training-and-reproduction"></a>
 
-## 4 · Train only what your setting needs
+## 4 · Training and model reuse
 
-Training progresses from reusing the learned target space to learning the
-complete model. Choose by **which components need new training**, rather than
-rerunning the whole chain for every setting. Install the training extra first:
+Training workflows range from reusing the learned target space to learning the
+complete model. Choose by **which components need new training**. Install the
+training extra first:
 
 ```bash
 uv pip install -e ".[training]"
@@ -265,8 +258,8 @@ inputs. See [training setup](docs/training.md) for workspace details.
 
 ### 4.1 · Train a single-cell encoder · reuse target embeddings
 
-Train the single-cell response encoder against the released target embeddings,
-without retraining the bulk model or graph encoder.
+Train the single-cell response encoder against the fixed released target
+embeddings.
 
 ```bash
 python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../metar-train-sc --stage single-cell --cell-line A549 --reuse-pretrained
@@ -279,7 +272,7 @@ components, X128 features, training labels and replacing the cell dataset.
 ### 4.2 · Train a protein-abundance encoder · reuse target embeddings
 
 Train the proteomics encoder using the stored bulk target vectors. The selected
-configuration can also train a target adapter; it does not retrain the GNN.
+configuration can also train a target adapter. The GNN remains fixed.
 
 ```bash
 python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../metar-train-proteomics --stage proteomics --reuse-pretrained
@@ -333,9 +326,8 @@ metar train --stage all --workspace ../metar-training --device cuda:0
 **[Full training guide →](docs/training/full-model.md)** · data acquisition,
 stage order, checkpoints and running individual stages.
 
-These entry points retain the selected scientific protocols. Changing feature
-spaces, candidate sets or split rules requires matching changes to those
-protocols; replacing an input filename alone does not define a new experiment.
+These entry points use the selected scientific protocols. Changes to feature
+spaces, candidate sets or split rules require corresponding protocol updates.
 See the [training reference](docs/training.md) for workspace checks and outputs.
 
 ---
@@ -363,20 +355,19 @@ is outside this code package.
 
 ## 📝 Citation
 
-If you find MeTar useful for your research, please consider citing our paper:
+Manuscript citation:
 
 ```bibtex
-@article{metar_submitted,
+@unpublished{metar_submitted,
   author  = {Li, Wannian and Zhang, Ying and Liu, Hong and Huang, Xun and Liu, Qi},
   title   = {Generalizable phenotype-inverse identification of compound targets from perturbational omics},
-  journal = {Submitted},
-  year    = {2026}
+  year    = {2026},
+  note    = {Manuscript submitted for publication}
 }
 ```
 
-The citation will be updated when a preprint or publication DOI is available.
-Use GitHub's **Cite this repository** button or [CITATION.cff](CITATION.cff)
-to export the citation.
+Use GitHub's **Cite this repository** button to export the citation. Software
+citation metadata is also available in [CITATION.cff](CITATION.cff).
 
 ---
 

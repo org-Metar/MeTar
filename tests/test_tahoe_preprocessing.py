@@ -57,7 +57,7 @@ class TahoePreprocessingTests(unittest.TestCase):
         digest = hashlib.sha256("\n".join(names).encode()).hexdigest()
         with patch.object(tahoe, "ORDERED_VAR_SHA256", digest):
             tahoe.validate_gene_order(names)
-            with self.assertRaisesRegex(ValueError, "refusing to guess"):
+            with self.assertRaisesRegex(ValueError, "original column order"):
                 tahoe.validate_gene_order(names[::-1])
 
     @unittest.skipUnless(importlib.util.find_spec("h5py"), "h5py is an optional preprocessing dependency")

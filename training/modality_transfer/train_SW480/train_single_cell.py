@@ -65,7 +65,7 @@ def copy_self_and_base(out_dir: Path, base_script: Path) -> None:
 
 def write_round260_report(out_dir: Path, cell_line: str, selected_result: dict[str, Any]) -> None:
     lines = [
-        f"# Round260 {cell_line} single-cell target-embedding swap report",
+        f"# {cell_line} single-cell target prediction",
         "",
         "## Selection rule",
         "",
@@ -90,7 +90,7 @@ def write_round260_report(out_dir: Path, cell_line: str, selected_result: dict[s
         "",
         "## Interpretation",
         "",
-        "The single-cell pipeline, head, split and evaluation protocol are unchanged. Only the target-side embedding source was swapped to the Round259 exported table.",
+        "The single-cell model uses the exported Round259 target-embedding table with the locked pipeline, head, split and evaluation protocol.",
     ]
     (out_dir / f"round260_{cell_line.lower().replace('-', '_')}_sc_label_bag_calibration_report.md").write_text(
         "\n".join(lines) + "\n", encoding="utf-8"

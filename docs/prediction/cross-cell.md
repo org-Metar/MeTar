@@ -3,7 +3,7 @@
 Apply the shared 668-target model directly (`MeTar_direct`), or use responses
 and known targets from separate reference compounds in the new cell line
 (`MeTar_adapted`). Adapted prediction applies the pretrained support-conditioned
-adapter at inference; it does not retrain model parameters on your query.
+adapter at inference with fixed model parameters.
 
 ## Download the models
 
@@ -25,7 +25,7 @@ adapted prediction also uses
 metar predict cross-cell --mode direct --cell-line HELA --input examples/inputs/cross_cell/hela/query.npz --device cpu --output outputs/hela_direct.tsv
 ```
 
-This runs two bundled real HELA query responses. No support compounds or query
+This runs two bundled HELA query responses. No support compounds or query
 labels are required for direct prediction. With your own data, follow the
 [bulk format and preparation](bulk.md#replace-the-example-with-your-data),
 including training-matched standardization. `--cell-line` records context; it
@@ -42,20 +42,19 @@ Prepare three files:
 | Support labels | One row per support ID: `query_id` and known `targets` |
 
 Both response tables must come from the same cell line and follow the same
-feature schema and preparation. Keep query and support compounds separate;
-renaming the same compound does not make it independent support. Use explicit
-IDs, because generated IDs such as `query_0` can overlap between files.
+feature schema and preparation. Query and support sets must contain distinct
+compounds. Use explicit IDs to distinguish them; generated IDs such as
+`query_0` can overlap between files.
 
-The CLI does not calculate the bulk standardization for either table. Prepare
-raw assays externally, using the training-derived per-feature mean/std for both
-query and support responses. The exact existing implementation is
-[`standardize_tables`](../../training/support_query_shift/support_query_shift.py#L245),
-called by [`build_round243_tables`](../../training/leakage_safe_support/leakage_safe_support.py#L553)
+Prepare both response tables externally using the training-derived per-feature
+mean/std. The implementation is
+[`standardize_tables`](../../training/support_query_shift/support_query_shift.py),
+called by [`build_round243_tables`](../../training/leakage_safe_support/leakage_safe_support.py)
 after compound/cell-line aggregation and training split selection. See the
 [three preparation steps](bulk.md#match-the-response-preparation), including
-the small-standard-deviation rule and the limitation that the fitted state is
-not separately released. Do not fit those values on the new cell line's
-queries or support set. The bundled examples are already transformed.
+the small-standard-deviation rule. The fitted state is not separately included
+in the pretrained archive. Use training-derived values for the new cell line's
+queries and support set. The bundled examples are already transformed.
 
 The support-label TSV looks like this:
 
@@ -67,9 +66,9 @@ support_b	TARGET_B|TARGET_C
 
 Replace these schematic IDs and targets with real values. Each support compound
 must have at least one target from the checkpoint's 668-target set. Use its
-exact target names, not arbitrary synonyms or accessions; an outside target is
-an error. Labels align by ID, regardless of physical row order. Separate
-multiple targets with `|`. `--target-column` changes the label column name;
+exact target names. Targets outside this set are rejected. Labels align by ID,
+regardless of physical row order. Separate multiple targets with `|`.
+`--target-column` changes the label column name;
 `--id-column` applies to all three tables.
 
 ```bash
@@ -85,12 +84,12 @@ support-response row order, not label-file order.
 
 ## Example inputs and your own assay
 
-The commands above use two real HELA queries and 64 separate support responses
+The commands above use two HELA queries and 64 separate support responses
 with known targets. A second HCC515 set for the same query compounds is also
 provided under `examples/inputs/cross_cell/hcc515/`. See
 [example provenance](../../examples/README.md). The inputs are already prepared;
-only the model archive is needed to run them. They are small demonstrations,
-not the full manuscript evaluation.
+only the model archive is needed to run them. For the full manuscript
+evaluation, follow [result reproduction](../reproduction.md).
 
 For your own named tables, replace those paths and provide the feature schema:
 
@@ -99,11 +98,10 @@ metar predict cross-cell --mode adapted --cell-line VCAP --input inputs/vcap_que
 ```
 
 For manuscript bulk/cross-cell inputs, see [public input setup](../data.md#place-separately-obtained-public-inputs).
-The matched processed LINCS table and metadata are separate inputs; an upstream
-download is not automatically the selected processed table. With your own
-assay, preserve feature identity/order, response scale, compound separation
-and the known-target vocabulary. Do not fit a query-only standardizer and
-assume it matches training.
+The matched processed LINCS table and metadata are separate inputs. Prepare
+upstream downloads to match those files. With your own assay, preserve feature
+identity/order, training-derived response scale, compound separation and the
+known-target vocabulary.
 
 ## Check and read the result
 
@@ -112,8 +110,8 @@ metar doctor --scenario cross-cell --mode adapted --cell-line HELA --input examp
 ```
 
 For direct checks, set `--mode direct` and omit support options. Doctor checks
-structure without inference; it cannot establish assay compatibility from
-dimensions alone. `--device auto` is the default; `--device cpu` requires CPU
+structure without inference. Check assay preparation against the requirements
+above. `--device auto` is the default; `--device cpu` requires CPU
 and `--device cuda:0` requires the first visible GPU. See
 [runtime reporting](../runtime.md). The
 [usual output columns](../usage.md#read-outputs-and-check-inputs) include

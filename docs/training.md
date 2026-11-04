@@ -1,8 +1,8 @@
-# Train only what your task needs
+# Training workflows
 
 Most prediction tasks use the [pretrained models](usage.md) without training.
-When training is needed, choose the smallest change below. The guides explain
-both the released data protocol and what must change for a new dataset.
+When training is needed, choose the components to update below. The guides
+explain both the released data protocol and changes required for a new dataset.
 
 | Start here | Components trained | Reused components | Guide |
 |---|---|---|---|
@@ -13,7 +13,7 @@ both the released data protocol and what must change for a new dataset.
 | Rebuild every selected model | Gene prior, bulk response model, adapter and downstream branches | Data schemas and split definitions only | [Full model](training/full-model.md) |
 
 Applying the pretrained adapter to reference compounds from one new cell line
-is an [inference task](usage.md), not a reason to repeat meta-training.
+uses the [inference workflow](usage.md).
 Combining predictions across cell lines also needs no extra model training.
 
 ## Install and place the inputs
@@ -30,7 +30,7 @@ The code checkout, artifact root and new training directory are separate:
 ```text
 MeTar/                  # this code checkout
 metar_artifacts/        # downloaded models and prepared input datasets
-metar-training/         # a new, private training workspace
+metar-training/         # a new training workspace
 ```
 
 Download the relevant [release archives](data.md#download-what-you-need), then
@@ -49,10 +49,11 @@ python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../me
 
 `--stage` chooses the sources, input data and protocol files to prepare.
 `--reuse-pretrained` copies only that stage's required upstream weights or
-target embeddings into the new directory. It never copies the selected output
-of the stage being trained. Sources, metadata and reused weights are private
-files; large input datasets are read-only file links by default. If the system
-does not permit input symlinks, preparation copies the affected inputs, prints
+target embeddings into the new directory. The selected output of the stage
+being trained is created by the new run. Sources, metadata and reused weights
+are workspace copies; large input datasets are file links by default. Treat
+linked inputs as read-only. If the system does not permit input symlinks,
+preparation copies the affected inputs, prints
 one notice and records `input_mode: copy_fallback` in `training_workspace.json`.
 Add `--copy-inputs` to copy all inputs, including when replacing them with your
 own data. Compatibility aliases are also copied when links are unavailable;
@@ -60,8 +61,8 @@ keep these copies aligned when replacing inputs.
 
 The destination must not exist and must be outside the code and artifact
 directories. Preparation refuses to overwrite an existing workspace. Add
-`--check-only` to inspect prerequisites without creating it. This checks file
-presence, not the scientific suitability of the dataset.
+`--check-only` to inspect prerequisite files without creating it. Follow the
+stage's input guide for feature definitions, preparation and split requirements.
 
 Without `--reuse-pretrained`, no pretrained parameter values are copied.
 A downstream stage cannot train until its upstream checkpoints or target
@@ -69,14 +70,31 @@ table are supplied. To generate them in the same workspace, prepare
 `--stage all` without reuse and run the stages in order, as shown in the
 [full-model guide](training/full-model.md).
 
-Training retains historical scientific script basenames inside the private
-workspace. On Windows, choose a short destination such as `C:/mt-train` and
+Training uses the source scripts' basenames inside the workspace. On Windows,
+choose a short destination such as `C:/mt-train` and
 enable long-path support if needed. Linux is the recommended environment
 for the complete training chain.
 
 The bulk cache builder creates a temporary graph link, using a temporary copy
 when links are unavailable. It removes only the compatibility file it created
 and preserves a matching pre-existing file.
+
+### Compatibility input paths
+
+Let `WORKSPACE` denote the prepared training directory. Its generated
+compatibility root is `COMPAT_ROOT = WORKSPACE/compat/home/lwn/claude/`.
+Training sources use the following paths relative to `COMPAT_ROOT`:
+
+| Input | Path relative to `COMPAT_ROOT` |
+|---|---|
+| Bulk profiles and metadata | `bulk/data/` |
+| Cell-line split records | `metar/` |
+| Single-cell profiles and labels | `sc/data/` |
+| Single-cell protocol | `manuscript/write/sc_agg_upgrade_20260321/derived_tables/` |
+
+These paths are created inside `WORKSPACE` to match the training sources. When
+replacing copied inputs, update the canonical files and their corresponding
+compatibility copies together.
 
 ## Check, train and find the results
 
@@ -88,24 +106,24 @@ metar train --stage single-cell --cell-line A549 --workspace ../metar-training-a
 `--check-only` verifies the selected stage's input files and workspace
 isolation. Installed optional modules and the requested device are checked
 before actual training starts. `--dry-run` prints its command without checking
-inputs. Training runs the selected paper configuration, rather than a
-hyperparameter search.
+inputs. Training runs the selected paper configuration.
 Use a new workspace for a new run: existing selected outputs are not replaced.
-`--device cpu` is available for compatible stages, but the full training chain
-can require substantial compute and has not been rerun end to end on CPU.
+`--device cpu` is available for compatible stages. The complete training
+workflow targets Linux and NVIDIA GPUs; plan CPU compute requirements for each
+individual stage before running the full sequence.
 
 New interface checkpoints are saved in the workspace's `checkpoints/selected/`.
 Detailed run directories, configuration records and metric tables remain in
 the same workspace. Single-cell and proteomics runs also write under
 `training_runs/`; their `--output-dir` must remain inside the workspace.
-Compatibility filenames retain the release naming scheme; read the new run's
+Interface filenames use the release naming scheme; read the new run's
 selection record for its actual selected epoch and performance.
 
 The CLI protects the downloaded model directory from writes and rejects
 symlinks or junctions that redirect mutable outputs outside the workspace.
-When changing data, replace only private workspace files and update their
+When changing data, replace workspace copies and update their
 matching labels, feature definitions and split metadata as described in each
-guide. Do not overwrite downloaded reference artifacts.
+guide. Keep downloaded reference artifacts in the separate input store.
 
 ## Reproduce the paper's complete training protocol
 
@@ -119,8 +137,7 @@ gene-prior → closed-bulk → support-initializer → cross-cell-adapter
                                                        └→ proteomics
 ```
 
-This sequence rebuilds all reported branches. It does not mean every later
-stage updates every preceding model: genome-wide training reuses the closed
-bulk checkpoint and cell-split record; modality training reuses the exported
+This sequence rebuilds all reported branches. Genome-wide training reuses the
+closed bulk checkpoint and cell-split record; modality training reuses the exported
 target embeddings. See [paper reproduction](reproduction.md) for evaluation
 and computational figures.

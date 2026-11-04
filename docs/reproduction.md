@@ -7,9 +7,8 @@ comparison against archived manuscript scores. For scratch training, follow
 ## Selected models
 
 [`model_selection.yaml`](../manifests/model_selection.yaml) identifies the model
-configurations used for the computational results. Figure composition and
-checkpoint selection are separate: updating an illustration does not select a
-new checkpoint.
+configurations used for the computational results. Use these model selections
+with the corresponding input preparation and evaluation protocol.
 
 | Component | Selected configuration |
 |---|---|
@@ -52,31 +51,34 @@ The verifier compares these branches against archived outputs:
 | Single-cell | A549, SW480 and NCI-H460; 30 drugs and 300 cells per drug in fixed pools; 90 x 16,583 scores |
 | Proteomics | 15 final-test metrics and the training-only preprocessing state |
 
-Report the actual branch results produced by the command. An archived reference
-value is not a result from a newly run environment.
+The command reports branch results for comparison with the archived outputs.
+Record the environment with any reported score differences.
 
-## Numerical and preparation limits
+<a id="numerical-and-preparation-limits"></a>
 
-- The checked Python 3.11/PyTorch CPU implementation agrees with the corresponding
-  original model classes in that environment. Single-cell and proteomics did
-  not meet the historical `1e-6` score-comparison tolerance there; matching
-  checked top-target sets does not establish historical numerical identity.
-  Full training and CUDA reproduction require their own runs.
+## Numerical comparability and input preparation
+
+- Score-level reproduction depends on the PyTorch build, device and numerical
+  precision. Single-cell and proteomics scores on CPU can differ from archived
+  values beyond the historical `1e-6` comparison tolerance. Compare score
+  differences and top-target agreement separately, and record the execution
+  environment with the results.
 - Public single-cell queries use deterministic query-dependent sampling. The
   archived comparison uses fixed evaluation cell pools. Saved Tahoe projection
-  components follow the notebook reload path and need not be bitwise identical
-  to coordinates produced by the initial live fit.
+  components follow the notebook reload path; reloaded and initially fitted
+  coordinates can differ at floating-point precision.
 - Near-tied full-space float32 scores can shift an internal rank by one across
   executions. The comparison checks the reported top-5% outcomes and aggregate
   rate, while recording rank-tie differences separately.
 - Ordinary 668-target bulk queries require training-derived normalization. A
   separately saved fitted mean/std state is not supplied with the pretrained
-  release. The PDF-3 log2FC input is a separate application contract, not a
-  replacement transform for arbitrary assays.
-- The public-input contract identifies processed files, but does not provide a
-  complete upstream download/transformation recipe for every file. The importer
-  places existing inputs; it cannot reconstruct missing preprocessing from a
-  filename or matrix shape.
+  release. The PDF-3 log2FC input follows its own application procedure. Prepare
+  independent assays with the normalization required by the selected model.
+- The public-input contract identifies processed files. Obtain these prepared
+  files, or reconstruct their preprocessing from the corresponding source
+  workflow, before using the importer. Upstream download and transformation
+  recipes are provided where available; additional preparation may be needed
+  for other public source files.
 - The adapted Figure 7 workflow retains checkpoints and score outputs, but not
   every intermediate query/support tensor needed for direct checkpoint-to-score
   re-export. Downstream aggregation and analysis can use the retained scores;

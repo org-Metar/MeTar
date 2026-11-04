@@ -611,7 +611,7 @@ def tester(model_name,model,
                     n_decoys = len(t_cand)
                     
                     t_score = - model.dissimilarity((h_emb - (h_emb * r_norm).sum() * r_norm + r_emb).repeat(n_decoys,1), 
-                                    t_cand_emb - (t_cand_emb * r_norm).sum(dim=1).view(-1,1) * r_norm)  # 应该能自动广播的
+                                    t_cand_emb - (t_cand_emb * r_norm).sum(dim=1).view(-1,1) * r_norm)  # Project each candidate onto the relation hyperplane.
 
                     r = int(sum(t_score >= score).cpu())
                     # print(r)

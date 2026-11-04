@@ -1012,7 +1012,7 @@ def write_method_lock(context: dict[str, Any], selected: dict[str, Any] | None) 
 def write_audit(context: dict[str, Any], selected: dict[str, Any] | None) -> None:
     data_audit = context["data_audit"]
     lines = [
-        "# Round247 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
         "- Scope: 668-label closed-set official unseen cell adaptation.",
         "- Base model is frozen Round246; KG and base predictor are not retrained.",
@@ -1061,7 +1061,7 @@ def write_report() -> None:
             )
         ].copy()
         bin_text = show_bins[[c for c in ["variant", "sample_bin", "selector", "requested_support_size", "n_cells", "Hit@10", "MeanAP", "NDCG@10", "AUROC", "Hit@50"] if c in show_bins.columns]].to_string(index=False)
-    text = f"""# Round247 support curve and query-gated adapter report
+    text = f"""# Support-conditioned query adapter
 
 ## Scope
 
@@ -1079,15 +1079,15 @@ Round247 freezes the Round246 base predictor and trains only a query-conditioned
 {bin_text}
 ```
 
-## Guardrails
+## Evaluation protocol
 
-- No full-space target side is used.
-- Official unseen cells remain evaluation cells only.
+- The candidate set contains the 668 training targets.
+- Official held-out cell lines are used for evaluation.
 - Support/query drug split remains disjoint.
-- Adaptation benefit must be interpreted against the no-adapt baseline.
+- Adaptation effects are measured relative to direct prediction on the same evaluation units.
 """
-    (ROUND_ROOT / "round247_result_report_zh.md").write_text(text, encoding="utf-8")
-    (SOURCE / "round247_result_report_zh.md").write_text(text, encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text(text, encoding="utf-8")
+    (SOURCE / "training_summary.md").write_text(text, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:

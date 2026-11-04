@@ -1,15 +1,14 @@
 # Train a protein-abundance response encoder
 
-Use this route to train the proteomics response branch while reusing the
-learned bulk target embeddings. It does not retrain the graph encoder or bulk
-response model. To predict with the existing model, follow the
+Use this route to train the proteomics response branch while keeping the
+learned bulk target embeddings fixed. To predict with the existing model, follow the
 [proteomics prediction guide](../prediction/proteomics.md).
 
 ## What is trained
 
 The protein-abundance encoder, score scale and label adapter selected by the
 method configuration are trained. The stored bulk target embeddings stay
-fixed; the GNN and bulk encoder are not updated.
+fixed along with the GNN and bulk encoder.
 
 The runner supports identity, linear and residual label adapters, selected by
 `label_adapter_mode` in the copied configuration. Identity leaves the target
@@ -40,15 +39,15 @@ dependency checks.
 
 The CSV's first column is a row index. Required metadata columns are `drug`
 and `target`; `target` contains a Python-style gene-symbol list such as
-`['EGFR']`. Every other column must be a numeric abundance feature, not an
-extra sample annotation. Rows without any mapped target are removed.
+`['EGFR']`. Every other column must be a numeric abundance feature; keep sample
+annotations separately. Rows without any mapped target are removed.
 Compound names are normalized to lowercase.
 
 The runner splits by compound, selects high-variance features using training
 rows only, applies `log1p` when training values are nonnegative, and learns
 centering and scaling from training rows. It saves this preprocessing for
-subsequent prediction. Do not pre-standardize new data using statistics from
-the complete dataset or mix arbitrary feature units with the selected recipe.
+subsequent prediction. Estimate preprocessing from training rows and keep
+feature units consistent with the selected recipe.
 
 ## Use your own training data
 
@@ -60,15 +59,16 @@ edit the workspace copy if intentionally changing that configuration.
 
 The selected evaluation recipe reserves up to 50 target genes and splits
 compounds into training, validation and test subsets. With a very small custom
-label set this may leave no supervised targets, so this is not a small-dataset
-fine-tuning recipe.
+label set this may leave no supervised targets. Choose a target holdout size
+appropriate to the dataset when configuring a different protocol.
 
 ## Find the outputs
 
 `training_runs/proteomics/` contains the encoder/label-adapter checkpoint,
 training history, selection record and per-compound evaluation.
 `checkpoints/selected/round261_proteomics_epoch070.pth` is the interface copy;
-its release filename does not fix the selected epoch of a new run.
+its release-compatible filename is stable across runs. Read the selection
+record for the epoch chosen in the new run.
 The matching fitted preprocessor is
 `data/processed/proteomics/round261_preprocessor.json`; its matching target
 table is the aligned CSV in `data/processed/fullspace/`. Keep these three

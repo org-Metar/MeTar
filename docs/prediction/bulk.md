@@ -23,10 +23,10 @@ target names and order.
 metar predict bulk-668 --input examples/inputs/bulk_query.npz --cell-line HELA --device cpu --output outputs/bulk_668.tsv
 ```
 
-This bundled input contains two real HELA responses already in the trained
-978-feature representation. It demonstrates prediction over 668 targets;
-it is not an evaluation restricted to the training cell lines. No result-data
-download is needed. See the [example inputs](../../examples/README.md) for
+This bundled input contains two HELA responses in the trained 978-feature
+representation. HELA is held out from training in the corresponding cross-cell
+evaluation. The model archive supplies the required assets. See the
+[example inputs](../../examples/README.md) for
 their provenance and selection. `--checkpoint PATH` selects a compatible model
 explicitly; batch size defaults to 256.
 
@@ -41,10 +41,9 @@ python scripts/prepare_pdf3.py --package ../metar_artifacts --output ../metar-ex
 metar predict bulk-668 --input ../metar-example/pdf3.csv --id-column query_id --cell-line JHH7 --top-k 20 --output ../metar-example/pdf3_targets.tsv
 ```
 
-The preparer preserves landmark order and refuses to overwrite output. Its
-`--from-raw` option starts from processed FPKM in `application_inputs.tar.gz`,
-not raw sequencing reads. See [reproduction](../reproduction.md) for the
-manuscript analysis.
+The preparer preserves landmark order and requires a new output path. Its
+`--from-raw` option uses the processed FPKM table in `application_inputs.tar.gz`.
+See [reproduction](../reproduction.md) for the manuscript analysis.
 
 ## Replace the example with your data
 
@@ -66,8 +65,8 @@ compound_a	0.12	-0.34	...	0.56
 compound_b	-0.20	0.45	...	0.08
 ```
 
-Replace `GENE_1` through `GENE_978` with the actual landmark names. These numbers
-illustrate the layout, not a usable biological query.
+Replace `GENE_1` through `GENE_978` and the illustrative values with the actual
+landmark names and prepared responses.
 
 | Item | Requirement |
 |---|---|
@@ -84,7 +83,7 @@ also works; select its column with `--feature-column`. The original
 order. Without an explicit schema, the CLI uses the default
 `data/application_inputs/pdf3/geneinfo_beta.txt` if present. If neither exists,
 it takes all numeric columns except the ID in their existing order and requires
-978; that fallback cannot detect the wrong biological order.
+978. With this fallback, feature identity and order must be checked separately.
 
 CSV, TSV, `.csv.gz`, `.tsv.gz` and Parquet are supported. `.npy` accepts an
 `N x 978` matrix or length-978 vector; `.npz` contains `x` or `features`, plus
@@ -93,18 +92,16 @@ order: a feature-order file cannot reorder them.
 
 ### Match the response preparation
 
-The input is a prepared response, not raw counts, FPKM or an arbitrary
-normalized expression matrix. Ordinary LINCS-style bulk prediction needs the
-training drug-cell-mean standardization. **The prediction CLI does not compute
-this standardization.** Its fitted mean/std state is not separately released
-in the pretrained archive; a raw assay must be prepared externally before
-running the command.
+Ordinary LINCS-style bulk prediction uses responses with training
+drug-cell-mean standardization applied. Prepare this representation externally
+before running the prediction CLI. The fitted mean/std state is not separately
+included in the pretrained archive.
 
-The existing preparation can be traced in
-[`build_round243_tables`](../../training/leakage_safe_support/leakage_safe_support.py#L553),
+The preparation is implemented in
+[`build_round243_tables`](../../training/leakage_safe_support/leakage_safe_support.py),
 which constructs the selected training/support/query splits, and in
-[`build_drugcell_table`](../../training/support_query_shift/support_query_shift.py#L178)
-and [`standardize_tables`](../../training/support_query_shift/support_query_shift.py#L245):
+`build_drugcell_table` and `standardize_tables` in
+[`support_query_shift.py`](../../training/support_query_shift/support_query_shift.py):
 
 1. Use the matched protocol and training cell/compound splits. For the reference
    training table, average response profiles within each compound/cell-line
@@ -113,22 +110,21 @@ and [`standardize_tables`](../../training/support_query_shift/support_query_shif
    `meta_train` drug-cell means only. The implementation replaces a standard
    deviation below `1e-6` with `1.0`.
 3. Apply `(response - training_mean) / training_std` to prepared queries and
-   support responses, using those same training-derived values. Do not estimate
-   them again from a query or support set.
+   support responses, using those same training-derived values.
 
 For the selected pipeline's context and split selection, see
-[`load_context`](../../training/closed_bulk/train_closed_bulk.py#L136) and
-[`build_round252_context`](../../scripts/benchmark_adaptation.py#L47). These are
-the existing data-preparation implementations, not a raw-assay prediction
-command. Reconstructing their inputs requires the matched prepared public
-datasets described in [data setup](../data.md); the small bundled examples
+[`load_context`](../../training/closed_bulk/train_closed_bulk.py) and
+[`build_round252_context`](../../scripts/benchmark_adaptation.py). Reconstructing
+their inputs requires the matched prepared public datasets described in
+[data setup](../data.md); the small bundled examples
 already include this transformation. Query target labels are not needed for
 prediction.
 
 The PDF-3 application follows a separate documented procedure: average treated
 and control FPKM separately, compute
 `log2((treated_mean_FPKM + 1) / (control_mean_FPKM + 1))`, then align landmarks.
-This does not establish a general raw-log2FC rule for other assays. The
+Use this procedure for the PDF-3 application. Independent assays require
+preparation matched to their selected model. The
 [genome-wide branch](genome-wide.md) has a different preparation contract,
 despite also accepting 978 features.
 
@@ -138,8 +134,8 @@ despite also accepting 978 features.
 metar doctor --scenario bulk-668 --input inputs/bulk_queries.tsv --id-column query_id --feature-order inputs/landmark_order.txt
 ```
 
-Doctor checks files, dimensions, IDs and finite values without inference. Shape
-alone cannot establish compatible preprocessing. Output defaults to all 668
+Doctor checks files, dimensions, IDs and finite values without inference.
+Check preprocessing against the requirements above. Output defaults to all 668
 candidates with `target`, `score` and descending `rank`. `rank=1` is best;
 scores are not binding probabilities. Use `--top-k 20` for a shortlist or
 `--top-k 0` for [consensus](consensus.md). See the shared

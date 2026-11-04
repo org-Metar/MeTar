@@ -1,8 +1,8 @@
 # Reproduce the PDF-3 target prediction
 
-This paper-reproduction example takes one prepared PDF-3 response from the release data and ranks
-668 candidate targets with the pretrained bulk model. It needs no separately
-downloaded LINCS or Tahoe dataset and does not train a model. For a first
+This example ranks 668 candidate targets from the release's prepared PDF-3
+response using the pretrained bulk model. The model and result-data archives
+supply the inputs for this workflow. For a first
 prediction with a small computational example or your own data, start with
 [pretrained prediction](../README.md#prediction-workflows).
 
@@ -20,8 +20,8 @@ python scripts/download_data.py --archive models_and_representations.tar.gz --ar
 
 The two compressed archives total about 361 MB. The downloader verifies file
 sizes and SHA-256 values, then extracts them under `../metar_artifacts`.
-No GitHub login or GitHub CLI installation is required. Keep that directory
-separate from the code checkout.
+The public downloads support anonymous access. Keep that directory separate
+from the code checkout.
 
 Set its absolute path in the current terminal:
 
@@ -52,8 +52,8 @@ landmark features. The second prints a JSON report with `"status": "ok"`,
 `"input_checked": true` and `"model_loaded": false` when its file and schema
 checks pass. It checks readiness without running inference.
 
-The example already has the model application's aligned log2-fold-change
-representation. It is not a raw-count RNA-seq input. For an independent assay,
+The example has the application's aligned log2-fold-change representation.
+For an independent assay,
 follow the [bulk input preparation requirements](usage.md#1-bulk-expression-668-targets)
 before substituting your own table.
 
@@ -86,8 +86,8 @@ These scores are rankings, not binding probabilities. To save every candidate
 rather than the first 20, run the same command with `--top-k 0` and a different
 output filename. Complete outputs are needed for multi-cell-line consensus.
 
-`prepare_pdf3.py` refuses to overwrite an existing query file. To repeat the
-example, reuse the prepared file or choose a new `--output` path.
+To repeat query preparation, reuse the prepared file or choose a new
+`--output` path; `prepare_pdf3.py` requires a new destination.
 
 ## 5. Use your own data
 

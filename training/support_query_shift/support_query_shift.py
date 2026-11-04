@@ -871,14 +871,14 @@ def write_report(summary_df: pd.DataFrame, audit: dict) -> None:
         .strip()
     )
     lines = [
-        "# Round208 A01 fixed-target MAML readout",
+        "# Fixed-target MAML readout",
         "",
-        "## Key guardrails",
+        "## Model and evaluation protocol",
         "",
         "- A01 pretrained target embeddings are registered as a fixed buffer.",
-        "- No `target_delta` parameter exists in this model.",
+        "- Target embeddings remain fixed during training.",
         "- Inner-loop and outer-loop updates only affect query/readout parameters.",
-        "- PC3, A375 and MCF7 are train cells under the legacy `splits_v3` cell split; this run evaluates drug-level adaptation on those benchmark cell lines, not held-out-cell extrapolation.",
+        "- PC3, A375 and MCF7 are train cells under the legacy `splits_v3` cell split; this run evaluates drug-level adaptation within those training cell lines.",
         "",
         "## Test metrics",
         "",
@@ -892,7 +892,7 @@ def write_report(summary_df: pd.DataFrame, audit: dict) -> None:
         json.dumps(audit, indent=2, ensure_ascii=False, default=str),
         "```",
     ]
-    (ROOT / "round208_result_report_zh.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROOT / "training_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def run_mode(mode: str, target_init: np.ndarray, labels: Sequence[str], device: torch.device, args: argparse.Namespace, base_audit: dict):
@@ -981,7 +981,7 @@ def main() -> None:
     (QA / "fixedtarget_maml_audit.md").write_text(
         "\n".join(
             [
-                "# Round208 fixed-target MAML audit",
+                "# Fixed-target MAML audit",
                 "",
                 "- A01 target embeddings are loaded from the Round205 A01 epoch-35 checkpoint.",
                 "- The readout class registers `target_anchor` as a buffer and defines no `target_delta` parameter.",

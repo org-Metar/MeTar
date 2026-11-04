@@ -780,7 +780,7 @@ def write_summaries(out_dir: Path, rows: list[dict], ctx: SweepContext) -> None:
         )
     )
     lines = [
-        f"# Round178 {ctx.cell_line} single-cell label-bag calibration report",
+        f"# {ctx.cell_line} single-cell label-bag calibration",
         "",
         "## Selection rule",
         "",
@@ -796,16 +796,16 @@ def write_summaries(out_dir: Path, rows: list[dict], ctx: SweepContext) -> None:
         f"- Test Hit@20: {selected['test_Hit@20']:.4f}",
         f"- Holdout top-5%: {selected['holdout_all_top5pct']:.4f}",
         f"- Holdout top-10%: {selected['holdout_all_top10pct']:.4f}",
-        f"- Acceptance criterion met relative to A549 Round61 closed-seen threshold: {'yes' if passes else 'no'}",
+        f"- Meets the A549 reference criterion: {'yes' if passes else 'no'}",
         "",
-        "## Data availability audit",
+        "## Input data",
         "",
         f"- Adata: `{ctx.adata_path}`",
         f"- Adata shape: `{ctx.adata.n_obs} x {ctx.adata.n_vars}`",
-        f"- Fit drugs available for training: `{len(ctx.available_fit_drugs)}/{len(ctx.fit_drugs)}`",
+        f"- Training compounds available: `{len(ctx.available_fit_drugs)}/{len(ctx.fit_drugs)}`",
         f"- Cell pools rebuilt from selected h5ad: `yes`",
         "",
-        "## Interpretation guardrail",
+        "## Evaluation protocol",
         "",
         "All loss modes use the same locked target embeddings, split and evaluation code. Holdout/open-world metrics were not used for model selection.",
     ]

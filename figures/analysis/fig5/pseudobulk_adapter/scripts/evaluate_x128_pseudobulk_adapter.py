@@ -4,8 +4,8 @@
 This diagnostic branch uses the existing Tahoe 128-dimensional single-cell
 features as input. It first averages X128 features by `(cell_line, drug)`,
 then trains a direct pseudo-bulk sample-side adapter against the fixed
-Round259 16,583-gene target embedding. It does not read raw Tahoe h5ad counts
-and does not modify Round260 single-cell reference outputs.
+16,583-gene target embedding exported by the full-space model. Inputs are
+prepared X128 features, with outputs written to this comparison's directory.
 """
 
 from __future__ import annotations

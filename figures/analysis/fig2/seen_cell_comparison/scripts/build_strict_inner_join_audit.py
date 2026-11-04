@@ -329,7 +329,7 @@ def write_report(overall: pd.DataFrame, per_cell: pd.DataFrame, audit: pd.DataFr
     max_excluded = int(audit["n_units_excluded"].max())
     label_ok = bool(labels["matches_metar_order"].all()) and bool(labels["n_labels"].eq(CANDIDATE_SPACE).all())
     lines = [
-        "# Round450 Fig.2 seen-cell strict core comparator validation",
+        "# Seen-cell comparator validation",
         "",
         "## Verdict",
         "",

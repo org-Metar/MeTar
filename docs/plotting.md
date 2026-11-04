@@ -24,14 +24,14 @@ python scripts/plot_figures.py render fig7 --output outputs/fig7
 ```
 
 If Arial is in a separate directory, add `--font-dir /path/to/arial-fonts`.
-The runner reports a missing font rather than silently replacing it. Use a new
-output directory for each render; the runner protects source and input paths.
+Arial is required for the configured typography. Use a new output directory
+for each render; source and input paths are reserved for their original files.
 
 `list` and `check` use only the Python standard library. `check` verifies the
-selected source/table files, Python syntax and required external assets without
-executing drawing code. Rendering uses the retained numerical values and drawing
-functions; it does not run model training or repeat permutation/bootstrap
-analyses.
+selected source/table files, Python syntax and required external assets.
+Rendering uses the supplied numerical values and drawing functions. Model
+training and permutation/bootstrap analyses belong to the upstream result
+workflows.
 
 ## Data and external assets
 
@@ -50,9 +50,8 @@ python scripts/plot_figures.py render fig3 --asset-root ../metar_artifacts/data/
 
 Exact required filenames and integrity hashes are in
 [`figures/plot_catalog.json`](../figures/plot_catalog.json). Missing or mismatched
-assets fail the check. The archive contains the supported computational
-composition inputs; it does not establish that every manuscript panel can be
-regenerated from measurements.
+assets fail the check. The archive contains the computational composition
+inputs listed in the catalog, including prepared tables and native diagrams.
 
 ## Useful entry points
 
@@ -64,6 +63,6 @@ regenerated from measurements.
 | `fig2` through `fig6` | Main-figure computational plots and native-diagram assembly, as listed by the runner |
 | Supported `supp` routes | Supplementary computational plots; use `list` for current identifiers |
 
-Scientific calculations and complete model-to-score reproduction are described
-in [reproduction.md](reproduction.md). A successful figure render checks the
-plotting path, not the biological validity of an experimental result.
+For scientific calculations and model-to-score reproduction, follow
+[reproduction.md](reproduction.md). Figure rendering uses the supplied source
+results; biological interpretation follows the underlying experiment.

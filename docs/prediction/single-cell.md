@@ -30,7 +30,7 @@ All use `data/processed/fullspace/round259_target_embedding.csv`. A compatible
 metar predict single-cell --input examples/inputs/single_cell_a549.npz --cell-line A549 --max-cells 0 --device cpu --output outputs/a549_single_cell.tsv
 ```
 
-The bundled example contains two A549 compound groups with 300 real X128 cells
+The bundled example contains two A549 compound groups with 300 X128 cells
 each. It needs no raw plate download or new projection. See its
 [provenance](../../examples/README.md).
 
@@ -87,17 +87,16 @@ metar predict single-cell --input ../prepared/cell_lines/tahoe_a549.h5ad --id-co
 ```
 
 The preparer requires the original ordered 62,710-gene schema and CSR sparse
-`.X`; dense/CSC matrices, reordered genes and other schemas are rejected. It
-keeps the fixed 6,000 selected genes in original gene order and applies saved
-SVD components. Do not add normalization, log transformation, centering or
-scaling. Selected gene order is not variance rank. Refitting SVD changes the
-coordinates and requires encoder retraining. The assembler holds selected
-cells in memory before writing H5AD.
+`.X`. It keeps the fixed 6,000 selected genes in original gene order and applies
+saved SVD components directly, without additional normalization, log
+transformation, centering or scaling. Selected genes retain their original
+order rather than variance rank. Refitting SVD changes the coordinates and
+requires encoder retraining. The assembler holds selected cells in memory
+before writing H5AD.
 
-An independent assay needs the trained representation and compatible model;
-any 128-dimensional embedding is insufficient. The original-plate preparer
-does not automatically adapt another gene schema or cell line. See
-[training](../training.md) when a new modality encoder is needed.
+An independent assay requires a compatible representation and encoder. For
+another gene schema or cell-line configuration, follow
+[training](../training.md) to configure and train an encoder.
 
 ## Check inputs and read output
 
