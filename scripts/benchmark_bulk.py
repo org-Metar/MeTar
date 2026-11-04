@@ -17,6 +17,7 @@ from benchmark_utils import hash_matches_manifest, import_module, sha256_file
 from metar.io import load_target_table, split_targets
 from metar.predict import predict_full_space, predict_proteomics
 from metar.preprocessing import fit_round261_preprocessor
+from metar.runtime import report_metrics, report_step, resolve_device
 
 
 METRIC_COLUMNS = [
@@ -65,6 +66,11 @@ def seen_metrics(scores: np.ndarray, labels: np.ndarray) -> dict[str, float]:
 
 
 def verify_proteomics(args: argparse.Namespace) -> dict[str, Any]:
+    args.device = resolve_device(getattr(args, "device", "auto"))
+    report_metrics(
+        {"setting": "proteomics verification", "device": args.device}, label="Setting"
+    )
+    report_step("Load locked proteomics inputs and fit training-derived preprocessing")
     reference = args.package / "data/processed/proteomics/proteomicsdb_data.csv"
     target_table = args.package / (
         "data/processed/fullspace/"
@@ -104,6 +110,7 @@ def verify_proteomics(args: argparse.Namespace) -> dict[str, Any]:
     )
     test_frame = frame[frame["drug"].isin(test_drugs)].copy()
 
+    report_step("Score proteomics queries and compare existing reference metrics")
     result = predict_proteomics(
         test_frame,
         tuple(test_frame["drug"].astype(str)),
@@ -151,7 +158,7 @@ def verify_proteomics(args: argparse.Namespace) -> dict[str, Any]:
         index=False,
         compression="gzip",
     )
-    return {
+    summary = {
         "status": "PASS" if max(deltas.values()) <= 1.0e-12 else "FAIL",
         "reference_sha256": sha256_file(reference),
         "checkpoint_matches_manifest": hash_matches_manifest(
@@ -165,9 +172,20 @@ def verify_proteomics(args: argparse.Namespace) -> dict[str, Any]:
         "expected": expected,
         "max_metric_abs_delta": max(deltas.values()),
     }
+    report_metrics(
+        {"status": summary["status"], "test_rows": len(test_frame),
+         "max_metric_abs_delta": summary["max_metric_abs_delta"]},
+        label="Summary",
+    )
+    return summary
 
 
 def verify_full_space(args: argparse.Namespace) -> dict[str, Any]:
+    args.device = resolve_device(getattr(args, "device", "auto"))
+    report_metrics(
+        {"setting": "full-space verification", "device": args.device}, label="Setting"
+    )
+    report_step("Load locked full-space cache, splits and checkpoints")
     cache = args.package / "data/processed/fullspace/h07_prepared_data.pt"
     target_table = args.package / "data/processed/fullspace/round259_target_embedding.csv"
     checkpoint = args.package / "checkpoints/selected/round259_e13_bce001.pth"
@@ -205,6 +223,7 @@ def verify_full_space(args: argparse.Namespace) -> dict[str, Any]:
         .numpy()
         .astype(np.int64)
     )
+    report_step("Run the existing archived full-space evaluation")
     article_model = r259.build_model(
         r230,
         payload["data"],
@@ -235,6 +254,7 @@ def verify_full_space(args: argparse.Namespace) -> dict[str, Any]:
     del article_model
     torch.cuda.empty_cache()
 
+    report_step("Score public full-space queries and compare the existing reference")
     query_ids = tuple(f"holdout_test:{index}" for index in range(len(bundle["x"])))
     result = predict_full_space(
         bundle["x"],
@@ -305,7 +325,7 @@ def verify_full_space(args: argparse.Namespace) -> dict[str, Any]:
     article_rate = 0.3269101501232355
     del result, payload, bundle
     gc.collect()
-    return {
+    summary = {
         "status": "PASS"
         if success_exact and success_rate == expected_rate == article_rate
         else "FAIL",
@@ -325,3 +345,10 @@ def verify_full_space(args: argparse.Namespace) -> dict[str, Any]:
         "expected_top5pct_success": expected_rate,
         "article_reported_metric_exact": success_rate == article_rate,
     }
+    report_metrics(
+        {"status": summary["status"], "rows": len(observed),
+         "observed_top5pct_success": success_rate,
+         "public_rank_tie_mismatches": summary["public_rank_tie_mismatches"]},
+        label="Summary",
+    )
+    return summary

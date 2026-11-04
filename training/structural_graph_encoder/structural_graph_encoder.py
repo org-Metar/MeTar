@@ -16,6 +16,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
+from metar.runtime import RunReporter, report_metrics, report_step, resolve_device
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_WORKSPACE = ROOT.parent
@@ -830,14 +831,14 @@ def markdown_table(df: pd.DataFrame, digits: int = 4) -> str:
 
 
 def run_one_variant(variant: str, device_arg: str) -> None:
-    ensure_dirs()
     if variant not in VARIANTS:
         raise RuntimeError(f"Unknown variant: {variant}")
+    device = torch.device(resolve_device(device_arg))
+    ensure_dirs()
     set_seed(SEED)
-    use_cuda = torch.cuda.is_available() and device_arg.startswith("cuda")
-    device = torch.device(device_arg if use_cuda else "cpu")
     log(f"variant={variant} device={device}")
 
+    report_step("Load response data and structural graph channels")
     landmarks, labels, rows, x, y = load_response()
     channel = None
     channel = load_or_build_channels(landmarks, labels)
@@ -856,9 +857,11 @@ def run_one_variant(variant: str, device_arg: str) -> None:
     if split_counts["inner_train"]["n_groups"] != 1906 or split_counts["val"]["n_groups"] != 172 or split_counts["test"]["n_groups"] != 465:
         raise RuntimeError(f"Unexpected split counts: {split_counts}")
 
+    report_step("Train and select the structural graph variant")
     model, history, selected = train_variant(variant, data, channel, device)
     pd.DataFrame(history).to_csv(SOURCE / f"training_history_{variant}.tsv", sep="\t", index=False)
 
+    report_step("Run the existing split evaluation and save results")
     summaries = []
     per_rows = []
     for split in ["inner_train", "val", "test"]:
@@ -920,6 +923,12 @@ def run_one_variant(variant: str, device_arg: str) -> None:
         ],
     }
     (ROOT / f"method_lock_{variant}.json").write_text(json.dumps(lock, indent=2), encoding="utf-8")
+    report_metrics(
+        {"variant": variant, "best_epoch": selected["best_epoch"],
+         "val_Hit@10": selected["best_val"]["Hit@10"],
+         "checkpoint": CHECKPOINTS / f"checkpoint_{variant}.pth"},
+        label="Summary",
+    )
 
 
 def write_leakage_audit() -> None:
@@ -1058,12 +1067,26 @@ def summarize_all() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", choices=[*VARIANTS, "summarize"], required=True)
-    parser.add_argument("--device", default="cuda:0")
+    parser.add_argument("--device", default="auto")
     args = parser.parse_args()
-    if args.variant == "summarize":
-        summarize_all()
-    else:
-        run_one_variant(args.variant, args.device)
+    try:
+        requested_device = args.device
+        args.device = resolve_device(requested_device)
+        with RunReporter(
+            "Structural graph encoder",
+            {"setting": args.variant, "device": args.device,
+             "requested_device": requested_device},
+        ):
+            if args.variant == "summarize":
+                report_step("Summarize existing structural graph results")
+                summarize_all()
+                report_metrics(
+                    {"output_directory": SOURCE}, label="Summary"
+                )
+            else:
+                run_one_variant(args.variant, args.device)
+    except (OSError, ValueError, RuntimeError, ImportError) as exc:
+        parser.exit(2, f"ERROR: {exc}\n")
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import pickle
 from pathlib import Path
 from typing import Any
 
@@ -13,9 +14,32 @@ from torch.nn import functional as F
 
 
 def load_checkpoint(path: str | Path) -> dict[str, Any]:
-    payload = torch.load(Path(path), map_location="cpu", weights_only=False)
+    source = Path(path)
+    recovery = (
+        "Re-download and extract the correct model assets, then check that "
+        "--checkpoint points to the selected checkpoint file."
+    )
+    invalid_data = (
+        f"cannot read checkpoint {source}: serialized data is empty, truncated, "
+        f"or invalid. {recovery}"
+    )
+    try:
+        payload = torch.load(source, map_location="cpu", weights_only=False)
+    except (EOFError, pickle.UnpicklingError) as exc:
+        raise ValueError(invalid_data) from exc
+    except (RuntimeError, ValueError) as exc:
+        if not str(exc).startswith(
+            (
+                "PytorchStreamReader failed",
+                "Invalid magic number;",
+                "Invalid protocol version:",
+                "unsupported pickle protocol:",
+            )
+        ):
+            raise
+        raise ValueError(invalid_data) from exc
     if not isinstance(payload, dict):
-        raise ValueError(f"checkpoint must contain a mapping: {path}")
+        raise ValueError(f"checkpoint must contain a mapping: {source}. {recovery}")
     return payload
 
 

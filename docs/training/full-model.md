@@ -40,9 +40,10 @@ python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../me
 ```
 
 Omitting `--stage` also selects `all`. Do not add `--reuse-pretrained` here:
-the full run creates its own upstream parameters. Add `--copy-inputs` if
-symlinks are unavailable. The input store and original code are kept separate
-from mutable training outputs.
+the full run creates its own upstream parameters. Preparation copies affected
+inputs when symlinks are unavailable; add `--copy-inputs` to copy all inputs.
+The input store and original code are kept separate from mutable training
+outputs. See [training setup](../training.md) for the fallback notice and marker.
 
 If no prepared bulk cache was present, build it in this workspace:
 
@@ -107,7 +108,14 @@ The full-space target vectors and proteomics preprocessor are generated
 anew. Their release-compatible filenames are stable entry points; selection
 records contain the actual epoch and validation results of this run.
 
-Preparation and dependency checks do not establish successful training or
-numerical reproduction. The complete chain has not been rerun in the new
-CPU validation environment. For released-score evaluation and figure
-generation, see [paper reproduction](../reproduction.md).
+The selected nine-stage chain has completed on Linux with an NVIDIA GPU,
+Python 3.11 and PyTorch 2.14.1+cu126, using a fresh cache and individually
+invoked public stage commands without pretrained parameter reuse. The bulk
+and genome-wide primary metrics remained close to the preceding retraining
+run. Read the new selection records for the exact results and evaluation units.
+
+CPU compatibility is covered by the test suite, real prediction checks and
+small single-cell/proteomics optimizer runs; the complete normal-budget chain
+has not been run end to end on CPU. Preparation checks alone do not establish
+successful training or numerical reproduction. For released-score evaluation
+and figure generation, see [paper reproduction](../reproduction.md).

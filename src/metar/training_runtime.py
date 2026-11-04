@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import functools
 import json
 import os
@@ -10,11 +11,13 @@ import shutil
 import sys
 from pathlib import Path
 
+from .runtime import RunReporter, report_metrics, report_step, resolve_device
 from .training import (
     LOCKED_OUTPUTS,
     ROUND259,
     SINGLE_CELL_SELECTIONS,
     archived_training_command,
+    check_training_dependencies,
     training_command,
     validate_training_workspace,
 )
@@ -48,23 +51,105 @@ def _copy_generated(source: Path, destination: Path, *, root: Path) -> None:
     shutil.copy2(source, destination)
 
 
+def report_saved_metrics(root: Path, stage: str) -> None:
+    """Print selected existing result rows; never run an additional evaluation."""
+    directories = {
+        "closed-bulk": "r246",
+        "support-initializer": "r247",
+        "cross-cell-adapter": "r252",
+        "full-space": "r259_261",
+    }
+    if stage not in directories:
+        return
+    from .training_workspace import ROUND_NAMES
+
+    path = (
+        root
+        / WRITE_ROOT
+        / ROUND_NAMES[directories[stage]]
+        / "source_data/metric_summary.tsv"
+    )
+    if not path.is_file():
+        return
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            if stage == "full-space":
+                if row.get("variant") != "e13_bce001" or row.get("split") not in {
+                    "test",
+                    "holdout_test",
+                }:
+                    continue
+                if row.get("evaluation_family", "").endswith("_remove_seen"):
+                    continue
+            else:
+                if (
+                    row.get("split") != "official_test"
+                    or row.get("evaluation_unit") != "drug-mean"
+                ):
+                    continue
+                if (
+                    stage == "closed-bulk"
+                    and row.get("evaluation_family") != "seen_668_no_adapt"
+                ):
+                    continue
+                if (
+                    stage == "support-initializer"
+                    and row.get("source") != "Round247_query_gated"
+                ):
+                    continue
+                if (
+                    stage == "cross-cell-adapter"
+                    and row.get("source") != "Round252_EpiQGate"
+                ):
+                    continue
+                if stage != "closed-bulk" and (
+                    row.get("selector") != "diverse_label"
+                    or float(
+                        row.get("requested_support_size")
+                        or row.get("adapt_support_size")
+                        or -1
+                    )
+                    != 64
+                ):
+                    continue
+            metrics = {
+                name: row[name]
+                for name in (
+                    "Hit@10",
+                    "MeanAP",
+                    "AUROC",
+                    "top5pct_success",
+                    "top10pct_success",
+                    "n_cells",
+                    "n_groups",
+                    "n_profiles",
+                    "best_epoch",
+                )
+                if row.get(name) not in (None, "")
+            }
+            metrics = {name: float(value) for name, value in metrics.items()}
+            label = f"Final {row['split']} | {row.get('evaluation_family', '')} | "
+            label += "profile" if stage == "full-space" else "cell-macro, drug-mean"
+            report_metrics(metrics, label=label)
+    report_step(f"Full metric table: {path}")
+
+
 def _run_source(script: Path, arguments: list[str], *, device: str) -> None:
     source = script.read_text(encoding="utf-8-sig")
-    if script.name == "run_round259_crosscell_fullspace_round252query.py":
-        old = 'device = torch.device("cuda" if torch.cuda.is_available() else "cpu")'
-        if source.count(old) != 1:
-            raise RuntimeError(
-                "Round259 device adaptation no longer matches the archived source"
-            )
-        source = source.replace(
-            old,
-            f"device = torch.device({device!r} if torch.cuda.is_available() else 'cpu')",
-        )
+    original_argv = sys.argv
+    original_path = list(sys.path)
     sys.argv = [str(script), *arguments]
     sys.path.insert(0, str(script.parent))
     namespace = {"__file__": str(script), "__name__": "__main__", "__package__": None}
     # Sources are the explicit, copied first-party archive entrypoints.
-    exec(compile(source, str(script), "exec"), namespace)  # noqa: S102
+    try:
+        exec(compile(source, str(script), "exec"), namespace)  # noqa: S102
+    except SystemExit as exc:
+        if exc.code not in (None, 0):
+            raise
+    finally:
+        sys.argv = original_argv
+        sys.path[:] = original_path
 
 
 def align_proteomics_targets(root: Path) -> Path:
@@ -107,6 +192,7 @@ def align_proteomics_targets(root: Path) -> Path:
 def _run_proteomics(root: Path, output: Path, device: str) -> Path:
     from .preprocessing import fit_round261_preprocessor
 
+    report_step("Align generated target embeddings to the locked proteomics gene order")
     label_table = align_proteomics_targets(root)
     lock = json.loads(
         (
@@ -163,6 +249,7 @@ def _run_proteomics(root: Path, output: Path, device: str) -> Path:
     import pandas as pd
 
     targets = tuple(pd.read_csv(label_table, index_col=0).index.astype(str))
+    report_step("Export training-derived proteomics normalization")
     preprocessor = fit_round261_preprocessor(
         root / "data/processed/proteomics/proteomicsdb_data.csv",
         targets,
@@ -174,15 +261,10 @@ def _run_proteomics(root: Path, output: Path, device: str) -> Path:
     return stem.with_suffix(".pth")
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--workspace", type=Path, required=True)
-    parser.add_argument("--stage", required=True)
-    parser.add_argument("--device", required=True)
-    parser.add_argument("--output-dir")
-    parser.add_argument("--cell-line")
-    args = parser.parse_args()
+def _execute(args: argparse.Namespace) -> Path:
+    """Execute one stage; callers own presentation and error reporting."""
     root = args.workspace.resolve()
+    report_step("Check stage inputs and protected output paths")
     command = training_command(
         args.stage,
         root,
@@ -191,6 +273,7 @@ def main() -> int:
         cell_line=args.cell_line,
     )
     validate_training_workspace(root, command, args.stage)
+    check_training_dependencies(args.stage)
     output = _private_output(
         root,
         args.output_dir,
@@ -198,49 +281,91 @@ def main() -> int:
     )
     if args.stage in {"single-cell", "proteomics"} and output.exists():
         raise FileExistsError(f"refusing to reuse training output directory: {output}")
-    # Historical checkpoints include NumPy metadata. Opt in explicitly within
-    # this isolated process for PyTorch >=2.6, including transitive imports.
     import torch
 
-    torch.load = functools.partial(torch.load, weights_only=False)
+    original_load = torch.load
+    original_environment = dict(os.environ)
+    # These first-party checkpoints contain NumPy metadata. This opt-in is
+    # limited to the trusted training workspace and restored after execution.
+    torch.load = functools.partial(original_load, weights_only=False)
     bulk = root / WRITE_ROOT / "bulk_sharedsample_indunseenlabel_20260330_h07"
     os.environ["METAR_BULK_PROJECT_ROOT"] = str(bulk)
     os.environ["METAR_BULK_PROTOCOL_PATH"] = str(
         root / "data/processed/lincs/bulk_protocol_lock_v2.json"
     )
-    if args.stage == "proteomics":
-        generated = _run_proteomics(root, output, args.device)
-    else:
-        archived = archived_training_command(
-            args.stage,
-            root,
-            device=args.device,
-            output_dir=output,
-            cell_line=args.cell_line,
-        )
-        script = root / archived[2]
-        _run_source(script, archived[3:], device=args.device)
-        if args.stage == "single-cell":
-            loss, seed, _directory = SINGLE_CELL_SELECTIONS[args.cell_line]
-            generated = (
-                output
-                / f"train_{args.cell_line.replace('-', '_')}"
-                / f"{loss}__seed{seed}/checkpoint.pth"
-            )
+    try:
+        if args.stage == "proteomics":
+            generated = _run_proteomics(root, output, args.device)
         else:
-            generated = root / LOCKED_OUTPUTS[args.stage]
-        if args.stage == "full-space":
-            _copy_generated(
-                root / ROUND259 / "source_data/round259_target_embedding.csv",
-                root / "data/processed/fullspace/round259_target_embedding.csv",
-                root=root,
+            archived = archived_training_command(
+                args.stage,
+                root,
+                device=args.device,
+                output_dir=output,
+                cell_line=args.cell_line,
             )
-    selected_name = SELECTED_NAMES.get(args.stage)
-    if args.stage == "single-cell":
-        _loss, seed, _directory = SINGLE_CELL_SELECTIONS[args.cell_line]
-        selected_name = f"round260_{args.cell_line.replace('-', '_')}_seed{seed}.pth"
-    _copy_generated(generated, root / "checkpoints/selected" / selected_name, root=root)
-    return 0
+            script = root / archived[2]
+            report_step("Prepare data, train and evaluate the selected model")
+            _run_source(script, archived[3:], device=args.device)
+            if args.stage == "single-cell":
+                loss, seed, _directory = SINGLE_CELL_SELECTIONS[args.cell_line]
+                generated = (
+                    output
+                    / f"train_{args.cell_line.replace('-', '_')}"
+                    / f"{loss}__seed{seed}/checkpoint.pth"
+                )
+            else:
+                generated = root / LOCKED_OUTPUTS[args.stage]
+            if args.stage == "full-space":
+                _copy_generated(
+                    root / ROUND259 / "source_data/round259_target_embedding.csv",
+                    root / "data/processed/fullspace/round259_target_embedding.csv",
+                    root=root,
+                )
+        selected_name = SELECTED_NAMES.get(args.stage)
+        if args.stage == "single-cell":
+            _loss, seed, _directory = SINGLE_CELL_SELECTIONS[args.cell_line]
+            selected_name = (
+                f"round260_{args.cell_line.replace('-', '_')}_seed{seed}.pth"
+            )
+        report_step("Export selected checkpoint")
+        destination = root / "checkpoints/selected" / selected_name
+        _copy_generated(generated, destination, root=root)
+        report_saved_metrics(root, args.stage)
+        return destination
+    finally:
+        torch.load = original_load
+        os.environ.clear()
+        os.environ.update(original_environment)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--workspace", type=Path, required=True)
+    parser.add_argument("--stage", required=True)
+    parser.add_argument("--device", required=True)
+    parser.add_argument("--output-dir")
+    parser.add_argument("--cell-line")
+    args = parser.parse_args()
+    try:
+        requested = args.device
+        args.device = resolve_device(requested)
+        with RunReporter(
+            "Training",
+            {
+                "setting": args.stage,
+                "cell_line": args.cell_line,
+                "device": args.device,
+                "requested_device": requested,
+                "workspace": args.workspace.resolve(),
+            },
+        ) as report:
+            checkpoint = _execute(args)
+            report.finish(checkpoint=checkpoint)
+        return 0
+    except (OSError, ValueError, RuntimeError, ImportError) as exc:
+        parser.exit(2, f"ERROR: {exc}\n")
+    return 2
 
 
 if __name__ == "__main__":

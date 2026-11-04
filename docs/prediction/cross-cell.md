@@ -113,7 +113,9 @@ metar doctor --scenario cross-cell --mode adapted --cell-line HELA --input examp
 
 For direct checks, set `--mode direct` and omit support options. Doctor checks
 structure without inference; it cannot establish assay compatibility from
-dimensions alone. CPU is the default; `--device cuda:0` requests a GPU. The
+dimensions alone. `--device auto` is the default; `--device cpu` requires CPU
+and `--device cuda:0` requires the first visible GPU. See
+[runtime reporting](../runtime.md). The
 [usual output columns](../usage.md#read-outputs-and-check-inputs) include
 `cell_line` and `prediction_mode`; adapted output also records support count
 and shift scale. Scores express within-query rankings, not calibrated

@@ -12,13 +12,15 @@ from typing import Any
 
 import torch
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROUND_ROOT = SCRIPT_DIR.parent
 ROUND259_TARGET_CSV = ROUND_ROOT / "source_data" / "round259_target_embedding.csv"
 REMOTE_BASE_SCRIPT = SCRIPT_DIR / "run_sc_label_bag_calibration_multicell_base.py"
 DEFAULT_OUT_DIR = ROUND_ROOT
-DEFAULT_DEVICE = "cuda:1"
+DEFAULT_DEVICE = "auto"
 CELL_LINE_TO_ADATA = {
     "A549": Path("/home/lwn/claude/sc/data/tahoe_a549.h5ad"),
     "SW480": Path("/NFS2_home/NFS2_home_1/lwn/claude/sc/data/tahoe_sw480.h5ad"),
@@ -28,6 +30,8 @@ CELL_LINE_TO_ADATA = {
 
 def load_base_module():
     base_script = REMOTE_BASE_SCRIPT
+    if not base_script.exists():
+        base_script = SCRIPT_DIR / "single_cell_model.py"
     if not base_script.exists():
         raise RuntimeError(f"Cannot find base single-cell runner: {base_script}")
     spec = importlib.util.spec_from_file_location("round178_sc_base", base_script)
@@ -151,8 +155,10 @@ def write_training_history(out_dir: Path, run_dir: Path, loss_mode: str, seed: i
 
 def main() -> None:
     args = parse_args()
+    device = torch.device(resolve_device(args.device))
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    report_step(f"Loading single-cell runner for {args.cell_line}; device={device}")
     base, base_script = load_base_module()
 
     if not ROUND259_TARGET_CSV.exists():
@@ -167,7 +173,6 @@ def main() -> None:
     cell_out_dir.mkdir(parents=True, exist_ok=True)
     copy_self_and_base(cell_out_dir, base_script)
 
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     print(f"device={device}", flush=True)
     print(f"out_dir={out_dir}", flush=True)
     print(f"cell_out_dir={cell_out_dir}", flush=True)
@@ -177,6 +182,7 @@ def main() -> None:
     print(f"adata_path={adata_path}", flush=True)
     print(f"target_embedding_path={target_embedding_path}", flush=True)
 
+    report_step("Preparing single-cell target embeddings, locked protocol, cells and labels")
     ctx = base.SweepContext(device=device, out_dir=cell_out_dir, adata_path=adata_path, cell_line=args.cell_line)
     ctx.write_global_lock()
     print("target/protocol lock ok", json.dumps(ctx.qa, sort_keys=True), flush=True)
@@ -197,9 +203,17 @@ def main() -> None:
                 result = base.train_one(ctx, loss_mode, seed, run_dir)
                 print("RESULT", json.dumps(base.flatten_result(result), sort_keys=True), flush=True)
             rows.append(base.flatten_result(result))
+            report_progress(len(rows), len(loss_modes) * len(seeds), label=f"single-cell {args.cell_line} runs")
 
+    report_step("Writing single-cell selection, training history and metric summaries")
     base.write_summaries(cell_out_dir, rows, ctx)
     selected = json.loads((cell_out_dir / "selected_primary_result.json").read_text(encoding="utf-8"))
+    for split, key in (("validation", "val_metrics"), ("test", "test_metrics"), ("holdout", "holdout_metrics")):
+        report_metrics(
+            {name: value for name, value in selected[key].items()
+             if name.endswith(("Hit@5", "Hit@10", "Hit@20", "top5pct", "top10pct"))},
+            label=f"single-cell {args.cell_line} selected {split} metrics",
+        )
     write_round260_report(cell_out_dir, args.cell_line, selected)
     write_leakage_audit(cell_out_dir, args.cell_line, ctx, selected)
 

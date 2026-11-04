@@ -16,6 +16,8 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 try:
     import torch
     import torch.nn as nn
@@ -128,6 +130,7 @@ def load_round246():
 
 
 def load_context(device: torch.device):
+    report_step('Loading checkpoints and preparing bulk split tables')
     r246 = load_round246()
     args = argparse.Namespace(
         kg_checkpoint=None,
@@ -448,6 +451,7 @@ def eligible_cells(item: dict, min_support: int, query_size: int) -> list[str]:
 
 
 def train_query_gated_adapter(context: dict[str, Any], device: torch.device, smoke: bool = False) -> tuple[QueryGatedSupportAdapter, dict[str, Any], pd.DataFrame]:
+    report_step('Preparing query-gated support initializer')
     r243 = context["r243"]
     r208 = context["r208"]
     model = context["model"]
@@ -476,12 +480,15 @@ def train_query_gated_adapter(context: dict[str, Any], device: torch.device, smo
     best_state = None
     stale = 0
     history = []
+    report_progress(0, int(cfg["max_epochs"]), label='query gated adapter epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, int(cfg["max_epochs"]) + 1):
         adapter.train()
         losses = []
         gate_means = []
         delta_norms = []
         for _ in range(int(cfg["tasks_per_epoch"])):
+            report_progress(_, int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
             cell = str(rng.choice(cells))
             support_idx, query_idx = sample_episode(train_item, cell, int(cfg["support_size"]), int(cfg["query_size"]), "diverse_label", rng)
             if len(support_idx) == 0 or len(query_idx) == 0:
@@ -511,8 +518,15 @@ def train_query_gated_adapter(context: dict[str, Any], device: torch.device, smo
             losses.append(float(loss.detach().cpu()))
             gate_means.append(float(gate.mean().detach().cpu()))
             delta_norms.append(float(torch.linalg.vector_norm(delta, dim=1).mean().detach().cpu()))
+        report_progress(int(cfg["tasks_per_epoch"]), int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         rec = evaluate_selection(context, adapter, device, cfg, epoch, float(np.mean(losses)), float(np.mean(gate_means)), float(np.mean(delta_norms)))
         history.append(rec)
+        report_progress(epoch, int(cfg["max_epochs"]), label='query gated adapter epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "pseudo_val_Hit@10", "pseudo_val_MeanAP")},
+            label=f"Epoch {epoch}/{int(cfg['max_epochs'])}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 f"{cfg['variant']} epoch={epoch} pseudo_hit10={rec['pseudo_val_Hit@10']:.4f} "
@@ -529,6 +543,12 @@ def train_query_gated_adapter(context: dict[str, Any], device: torch.device, smo
             break
     if best is None or best_state is None:
         raise RuntimeError("No Round247 adapter selected")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best["epoch"],
+         "pseudo_val_Hit@10": best["pseudo_val_Hit@10"],
+         "pseudo_val_MeanAP": best["pseudo_val_MeanAP"]},
+        label="Selected support initializer validation metrics",
+    )
     adapter.load_state_dict(best_state, strict=True)
     ckpt_dir = CHECKPOINTS / cfg["variant"]
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -608,7 +628,8 @@ def evaluate_no_adapt(context: dict[str, Any], query_key: str, unit: str, varian
     item = context["tables"][query_key]
     cell_rows = []
     per_parts = []
-    for cell, qidx_raw in item["by_cell"].items():
+    for _cell_index, (cell, qidx_raw) in enumerate(item["by_cell"].items()):
+        report_progress(_cell_index, len(item["by_cell"]), label=f"{variant}: cells inspected")
         qidx = np.asarray(qidx_raw, dtype=np.int64)
         if len(qidx) == 0:
             continue
@@ -622,6 +643,7 @@ def evaluate_no_adapt(context: dict[str, Any], query_key: str, unit: str, varian
             per["adapt_support_size"] = 0
             per["selector"] = "none"
             per_parts.append(per)
+    report_progress(len(item["by_cell"]), len(item["by_cell"]), label=f"{variant}: cells inspected")
     cell_df = pd.DataFrame(cell_rows)
     metric = macro_from_cells(cell_df, variant, item.get("split_name", query_key), unit, "Round247_no_adapt")
     return pd.DataFrame([metric]), cell_df, pd.concat(per_parts, ignore_index=True) if per_parts else pd.DataFrame()
@@ -650,7 +672,8 @@ def evaluate_query_gated(
     per_parts = []
     audit_rows = []
     with torch.no_grad():
-        for cell, qidx_raw in query_item["by_cell"].items():
+        for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+            report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
             qidx = np.asarray(qidx_raw, dtype=np.int64)
             support_all = np.asarray(support_item["by_cell"].get(cell, np.asarray([], dtype=np.int64)), dtype=np.int64)
             if len(qidx) == 0 or len(support_all) == 0:
@@ -692,6 +715,7 @@ def evaluate_query_gated(
                 per["selector"] = selector
                 per["gate_mean"] = float(gate.mean().detach().cpu())
                 per_parts.append(per)
+        report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     cell_df = pd.DataFrame(cell_rows)
     metric = macro_from_cells(cell_df, variant, query_key, unit, "Round247_query_gated")
     metric["selector"] = selector
@@ -722,7 +746,8 @@ def evaluate_round246_cell_adapter(
     per_parts = []
     audit_rows = []
     with torch.no_grad():
-        for cell, qidx_raw in query_item["by_cell"].items():
+        for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+            report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
             qidx = np.asarray(qidx_raw, dtype=np.int64)
             support_all = np.asarray(support_item["by_cell"].get(cell, np.asarray([], dtype=np.int64)), dtype=np.int64)
             if len(qidx) == 0 or len(support_all) == 0:
@@ -770,6 +795,7 @@ def evaluate_round246_cell_adapter(
                 per["selector"] = "top_count"
                 per["gate_mean"] = float("nan")
                 per_parts.append(per)
+        report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     cell_df = pd.DataFrame(cell_rows)
     metric = macro_from_cells(cell_df, variant, query_key, unit, "Round246_cell_level_adapter")
     metric["selector"] = "top_count"
@@ -1077,7 +1103,7 @@ def main() -> None:
     set_seed(SEED)
     args = parse_args()
     require_torch()
-    device = torch.device(args.device if args.device == "cuda" and torch.cuda.is_available() else "cpu")
+    device = torch.device(resolve_device(args.device))
     run_eval(args, device)
 
 

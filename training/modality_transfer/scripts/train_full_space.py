@@ -18,6 +18,8 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 
 ROUND_ROOT = Path(__file__).resolve().parents[1]
 REMOTE_WRITE_ROOT = Path("/home/lwn/claude/manuscript/write")
@@ -507,6 +509,7 @@ def train_variant(
     best: dict[str, Any] | None = None
     best_state = None
     best_epoch = 0
+    report_step(f"Training full-space {variant}; device={device} max_epochs={max_epochs} batch_size={batch_size} cfg={json.dumps(cfg, sort_keys=True)}")
 
     for epoch in range(1, max_epochs + 1):
         model.train()
@@ -528,7 +531,9 @@ def train_variant(
             torch.nn.utils.clip_grad_norm_(trainable_params, 1.5)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+            report_progress(min(start + batch_size, n_train), n_train, label=f"full-space {variant} epoch {epoch} profiles", metrics={"loss": losses[-1]})
 
+        report_step(f"Validating full-space {variant} epoch {epoch}")
         seen_scores = module.predict_seen(model, splits["val"]["x"], device, batch_size=256)
         seen = module.compute_metrics(seen_scores, splits["val"]["y"])
         holdout, _ = module.evaluate_holdout_top5(model, holdouts["holdout_val"], device, batch_size=128, exclude_seen=False)
@@ -551,6 +556,14 @@ def train_variant(
             **{k: v for k, v in cfg.items() if isinstance(v, (int, float, str, bool))},
         }
         history.append(rec)
+        report_progress(epoch, max_epochs, label=f"full-space {variant} epochs")
+        report_metrics(
+            {key: rec[key] for key in (
+                "train_loss", "seen_Hit@10", "seen_MeanAP",
+                "holdout_top5pct", "holdout_top5pct_remove_seen",
+            )},
+            label=f"full-space {variant} epoch {epoch}",
+        )
         if better_round259_candidate(rec, best):
             best = rec
             best_epoch = epoch
@@ -568,6 +581,7 @@ def train_variant(
 
     if best_state is not None:
         model.load_state_dict(best_state, strict=True)
+    report_step(f"Evaluating selected full-space {variant}; best_epoch={best_epoch}")
     metrics, per = evaluate_round259_variant(module, variant, model, splits, holdouts, device, best_epoch)
     ckpt_dir = module.CHECKPOINTS / variant
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -618,6 +632,7 @@ def evaluate_holdout_percent(
                         "n_true_targets": int(len(true_idx)),
                     }
                 )
+        report_progress(min(start + batch_size, len(bundle["x"])), len(bundle["x"]), label=f"full-space holdout top{int(percent * 100)}pct exclude_seen={exclude_seen} profiles")
     key = f"top{int(percent * 100)}pct_success"
     return (
         {
@@ -646,8 +661,10 @@ def evaluate_round259_variant(
         "pc3_test": "pc3_seen_cell_diagnostic",
     }
     for split_name in ["val", "test", "pc3_test"]:
+        report_step(f"Evaluating full-space {run_id}: {split_name}")
         scores = module.predict_seen(model, splits[split_name]["x"], device, batch_size=256)
         metrics = module.compute_metrics(scores, splits[split_name]["y"])
+        report_metrics(metrics, label=f"full-space {run_id} {split_name}")
         rows.append(
             {
                 "variant": run_id,
@@ -666,6 +683,7 @@ def evaluate_round259_variant(
         "pc3_holdout_test": "pc3_seen_cell_diagnostic",
     }
     for split_name in ["holdout_val", "holdout_test", "pc3_holdout_test"]:
+        report_step(f"Evaluating full-space {run_id}: {split_name}")
         metrics, per = evaluate_holdout_percent(
             model,
             holdouts[split_name],
@@ -693,6 +711,8 @@ def evaluate_round259_variant(
             exclude_seen=True,
             return_rows=False,
         )
+        report_metrics({**metrics, **metrics10}, label=f"full-space {run_id} {split_name}")
+        report_metrics(metrics_rm, label=f"full-space {run_id} {split_name} remove_seen")
         rows.append(
             {
                 "variant": run_id,
@@ -840,12 +860,15 @@ Sample side is initialized from the Round246/Round252-family `query_encoder/quer
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=str, default=",".join(VARIANTS.keys()))
+    parser.add_argument("--device", default="auto")
     parser.add_argument("--smoke", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    device = torch.device(resolve_device(args.device))
+    report_step(f"Loading full-space runner; device={device} runs={args.runs} smoke={args.smoke}")
     module = load_round230_module()
     module.ROUND_ROOT = ROUND_ROOT
     module.SOURCE = ROUND_ROOT / "source_data"
@@ -853,12 +876,13 @@ def main() -> None:
     module.CHECKPOINTS = ROUND_ROOT / "checkpoints"
     module.ensure_dirs()
     module.set_seed(module.SEED)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     module.log(f"round259 device={device}")
+    report_step("Loading full-space h07 data and locked cell split protocol")
     wrapper, data, protocol = module.load_h07_data()
     protocol_audit = load_round252_protocol_audit()
     splits, holdouts, split_counts = build_round259_splits(module, data, protocol_audit)
     train_idx = data["train_gene_global_idx"].detach().cpu().numpy().astype(np.int64)
+    report_step("Loading closed-bulk query encoder initialization")
     query_state, query_audit = load_round246_query_state()
 
     metrics_all = []
@@ -873,6 +897,7 @@ def main() -> None:
         cfg = deepcopy(VARIANTS[variant])
         cfg["target_mode"] = "round259_round246query_crosscell_round240_fullspace_ppi_t4"
         cfg["ablation"] = f"round259_{variant}_round246query_crosscell_fullspace_ppi_t4"
+        report_step(f"Building full-space model {variant}")
         model = build_model(module, data, device, train_idx, cfg, query_state)
         audits.append(
             {
@@ -899,6 +924,7 @@ def main() -> None:
             per["target_mode"] = cfg["target_mode"]
             per_all.append(per)
 
+    report_step("Writing full-space histories, metrics, selection and target embedding export")
     metrics_df = pd.concat(metrics_all, ignore_index=True)
     history_df = pd.concat(history_all, ignore_index=True)
     metrics_df.to_csv(module.SOURCE / "metric_summary.tsv", sep="\t", index=False)

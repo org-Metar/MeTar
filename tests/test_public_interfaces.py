@@ -48,7 +48,7 @@ def test_bulk_668_loads_exact_checkpoint_schema(tmp_path: Path) -> None:
     model, labels = save_closed_checkpoint(checkpoint)
     features = np.asarray([[0.1, -0.2, 0.3], [0.5, 0.2, -0.1]], dtype=np.float32)
 
-    result = predict_bulk_668(features, ("q1", "q2"), checkpoint)
+    result = predict_bulk_668(features, ("q1", "q2"), checkpoint, device="cpu")
 
     with torch.no_grad():
         expected = model(torch.tensor(features)).numpy()
@@ -123,6 +123,7 @@ def test_full_space_uses_round259_query_state_and_exported_targets(
         checkpoint,
         target_names,
         target_values,
+        device="cpu",
     )
     loaded, _ = FullSpaceScorer.from_checkpoint(checkpoint, target_values)
 

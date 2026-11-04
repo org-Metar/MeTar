@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from .runtime import report_step, resolve_device
 from .training_workspace import MARKER, ROUND_NAMES, assert_private_output
 
 
@@ -192,6 +195,7 @@ def archived_training_command(
             "closed-bulk",
             "support-initializer",
             "cross-cell-adapter",
+            "full-space",
         }:
             arguments = (*arguments, "--device", device)
         elif stage_name == "proteomics":
@@ -263,8 +267,8 @@ def validate_training_workspace(
     if locked_output and (root / locked_output).exists():
         raise RuntimeError(
             "the selected checkpoint output already exists in this workspace. "
-            "Training would overwrite a locked release artifact. Use a disposable hydrated copy and remove "
-            f"only its output link before running stage {stage_name!r}: {locked_output}"
+            "Use scripts/prepare_training.py to create a fresh workspace for this stage. "
+            f"Existing output for {stage_name!r}: {locked_output}"
         )
 
 
@@ -321,6 +325,10 @@ def stage_inputs(stage_name: str, command: list[str]) -> tuple[str, ...]:
         )
         if stage_name == "cross-cell-adapter":
             upstream += (LOCKED_OUTPUTS["support-initializer"],)
+        if stage_name == "support-initializer":
+            upstream += (
+                f"{ROUND_ROOT}/{ROUND_NAMES['r246']}/source_data/selected_r246_joint_lm0p5_sc0p15_mn2p5.json",
+            )
         return (*bulk, *prior, *upstream, STAGES[stage_name].target)
     if stage_name == "full-space":
         return (
@@ -349,6 +357,28 @@ def stage_inputs(stage_name: str, command: list[str]) -> tuple[str, ...]:
         "code/original_runs/r259_261/proteomics_results/round261_proteomics_round259_embedding_method_lock.json",
         f"{ROUND259}/scripts/run_round261_proteomics_round259_embedding.py",
     )
+
+
+def check_training_dependencies(stage_name: str) -> None:
+    """Check optional packages before allocating a model or starting a child."""
+    packages = {
+        "gene-prior": ("scipy", "sklearn"),
+        "closed-bulk": ("scipy", "sklearn", "pyarrow"),
+        "support-initializer": ("scipy", "sklearn", "pyarrow"),
+        "cross-cell-adapter": ("scipy", "sklearn", "pyarrow"),
+        "full-space": ("scipy", "sklearn"),
+        "single-cell": ("scipy", "sklearn", "anndata"),
+        "proteomics": ("scipy", "sklearn"),
+    }
+    missing = [
+        name for name in packages[stage_name] if importlib.util.find_spec(name) is None
+    ]
+    if missing:
+        raise ImportError(
+            "Missing training dependencies: "
+            + ", ".join(missing)
+            + f'. In this environment run: {sys.executable} -m pip install -e ".[training]"'
+        )
 
 
 def run_training_stage(
@@ -414,6 +444,15 @@ def run_training_stage(
             )
         )
         return 0 if prepared and not missing and workspace_error is None else 2
+    report_step(f"Check {stage_name} workspace, dependencies and device")
     validate_training_workspace(workspace, command, stage_name)
-    completed = subprocess.run(command, cwd=Path(workspace).resolve(), check=False)
+    check_training_dependencies(stage_name)
+    resolved = resolve_device(device)
+    command[command.index("--device") + 1] = resolved
+    environment = os.environ.copy()
+    environment["PYTHONUNBUFFERED"] = "1"
+    report_step(f"Run {stage_name} on {resolved}")
+    completed = subprocess.run(
+        command, cwd=Path(workspace).resolve(), check=False, env=environment
+    )
     return int(completed.returncode)

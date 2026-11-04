@@ -18,6 +18,8 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 try:
     import torch
     import torch.nn.functional as F
@@ -206,6 +208,7 @@ def metric_macro_from_cells(cell_df: pd.DataFrame, variant: str, split_name: str
 
 
 def load_context(r250, args: argparse.Namespace, device: torch.device) -> dict[str, Any]:
+    report_step('Loading checkpoints and preparing bulk split tables')
     r243, r211, r208, labels, kg_path, kg_ckpt, tables, data_audit = r250.load_context(args, device)
     r243.write_round243_audit_tables(tables, data_audit)
     support_ckpt = r250.resolve_current_checkpoint(args.support_baseline_variant, args.support_checkpoint)
@@ -404,6 +407,7 @@ def selection_record(context: dict[str, Any], adapter: nn.Module, r247, device: 
 
 
 def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, device: torch.device) -> tuple[nn.Module, pd.DataFrame, dict[str, Any]]:
+    report_step('Preparing episodic cross-cell adapter')
     cfg = deepcopy(EPIQGATE_DEFAULT)
     cfg["hidden_dim"] = int(args.adapter_hidden_dim)
     cfg["dropout"] = float(args.adapter_dropout)
@@ -466,6 +470,8 @@ def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, devi
     r243 = context["r243"]
     for param in model.parameters():
         param.requires_grad_(False)
+    report_progress(0, int(cfg["max_epochs"]), label='epiqgate epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, int(cfg["max_epochs"]) + 1):
         adapter.train()
         losses = []
@@ -474,6 +480,7 @@ def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, devi
         gates = []
         deltas = []
         for _ in range(int(cfg["tasks_per_epoch"])):
+            report_progress(_, int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
             cell = str(rng.choice(cells))
             support_idx, query_idx = sample_episode(
                 r247,
@@ -518,6 +525,7 @@ def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, devi
             anchor_losses.append(float(base_anchor_loss.detach().cpu()))
             gates.append(float(gate.mean().detach().cpu()))
             deltas.append(float(torch.linalg.vector_norm(delta, dim=1).mean().detach().cpu()))
+        report_progress(int(cfg["tasks_per_epoch"]), int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
         stats = {
             "train_loss": float(np.mean(losses)) if losses else float("nan"),
             "episode_loss": float(np.mean(episode_losses)) if episode_losses else float("nan"),
@@ -525,8 +533,14 @@ def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, devi
             "gate_mean": float(np.mean(gates)) if gates else float("nan"),
             "delta_norm": float(np.mean(deltas)) if deltas else float("nan"),
         }
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         rec = selection_record(context, adapter, r247, device, cfg, epoch, stats)
         history.append(rec)
+        report_progress(epoch, int(cfg["max_epochs"]), label='epiqgate epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "pseudo_val_Hit@10", "pseudo_val_MeanAP")},
+            label=f"Epoch {epoch}/{int(cfg['max_epochs'])}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 f"{cfg['variant']} epoch={epoch} pseudo_hit10={rec['pseudo_val_Hit@10']:.4f} "
@@ -543,6 +557,12 @@ def train_epiqgate(context: dict[str, Any], r247, args: argparse.Namespace, devi
             break
     if best is None or best_state is None:
         raise RuntimeError("No EpiQGate checkpoint selected")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best["epoch"],
+         "pseudo_val_Hit@10": best["pseudo_val_Hit@10"],
+         "pseudo_val_MeanAP": best["pseudo_val_MeanAP"]},
+        label="Selected cross-cell adapter validation metrics",
+    )
     adapter.load_state_dict(best_state, strict=True)
     ckpt_dir = CHECKPOINTS / cfg["variant"]
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -602,7 +622,8 @@ def evaluate_epiqgate(
     per_parts = []
     audit_rows = []
     with torch.no_grad():
-        for cell, qidx_raw in query_item["by_cell"].items():
+        for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+            report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
             qidx = np.asarray(qidx_raw, dtype=np.int64)
             support_all = np.asarray(support_item["by_cell"].get(cell, np.asarray([], dtype=np.int64)), dtype=np.int64)
             if len(qidx) == 0 or len(support_all) == 0:
@@ -660,6 +681,7 @@ def evaluate_epiqgate(
                 per["selector"] = selector
                 per["gate_mean"] = float(gate.mean().detach().cpu())
                 per_parts.append(per)
+        report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     cells = context["r250"].add_cell_count_columns(pd.DataFrame(cell_rows), support_item)
     cells["method_family"] = "epiqgate"
     cells["split_role"] = split_role
@@ -776,7 +798,8 @@ def evaluate_hybrid(
     audit_rows = []
     adapter.eval()
     model.eval()
-    for cell, qidx_raw in query_item["by_cell"].items():
+    for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+        report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
         qidx = np.asarray(qidx_raw, dtype=np.int64)
         support_all = np.asarray(support_item["by_cell"].get(cell, np.asarray([], dtype=np.int64)), dtype=np.int64)
         if len(qidx) == 0 or len(support_all) == 0:
@@ -849,6 +872,7 @@ def evaluate_hybrid(
             per["requested_support_size"] = int(support_size)
             per["selector"] = selector
             per_parts.append(per)
+    report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     cells = context["r250"].add_cell_count_columns(pd.DataFrame(cell_rows), support_item)
     cells["method_family"] = "qgate_maml_hybrid"
     cells["split_role"] = split_role
@@ -888,12 +912,18 @@ def evaluate_epiqgate_all(
         ("seen_support", "seen_test", "seen_test", "drug-mean", "seen_diagnostic"),
         ("seen_support", "seen_test_profile", "seen_test_profile", "true-profile-specific", "seen_diagnostic"),
     ]
+    support_sizes = tuple(support_sizes)
+    selectors = tuple(selectors)
+    _eval_total = sum(int(size) > 0 for size in support_sizes) * len(splits) * len(selectors)
+    _eval_completed = 0
+    report_progress(0, _eval_total, label='EpiQGate evaluation blocks')
     for support_size in support_sizes:
         if int(support_size) <= 0:
             continue
         size_tag = "all" if int(support_size) < 0 else str(int(support_size))
         for selector in selectors:
             for support_key, query_key, split_name, unit, split_role in splits:
+                report_step(f"Evaluating support={support_size}, selector={selector}, split={split_name}")
                 variant = f"{selected['variant']}_{split_role}_{selector}_s{size_tag}"
                 m, c, p, a = evaluate_epiqgate(
                     context,
@@ -917,6 +947,8 @@ def evaluate_epiqgate_all(
                     per_all.append(p)
                 if len(a):
                     audits.append(a)
+                _eval_completed += 1
+                report_progress(_eval_completed, _eval_total, label='EpiQGate evaluation blocks')
     return (
         pd.concat(metrics, ignore_index=True, sort=False) if metrics else pd.DataFrame(),
         pd.concat(cells_all, ignore_index=True, sort=False) if cells_all else pd.DataFrame(),
@@ -946,11 +978,17 @@ def evaluate_hybrid_all(
         ("seen_support", "seen_test", "seen_test", "drug-mean", "seen_diagnostic"),
         ("seen_support", "seen_test_profile", "seen_test_profile", "true-profile-specific", "seen_diagnostic"),
     ]
+    support_sizes = tuple(support_sizes)
+    selectors = tuple(selectors)
+    _eval_total = sum(int(size) > 0 for size in support_sizes) * len(splits) * len(selectors)
+    _eval_completed = 0
+    report_progress(0, _eval_total, label='Hybrid evaluation blocks')
     for support_size in support_sizes:
         if int(support_size) <= 0:
             continue
         for selector in selectors:
             for support_key, query_key, split_name, unit, split_role in splits:
+                report_step(f"Evaluating support={support_size}, selector={selector}, split={split_name}")
                 m, c, p, a = evaluate_hybrid(
                     context,
                     r247,
@@ -972,6 +1010,8 @@ def evaluate_hybrid_all(
                     per_all.append(p)
                 if len(a):
                     audits.append(a)
+                _eval_completed += 1
+                report_progress(_eval_completed, _eval_total, label='Hybrid evaluation blocks')
     return (
         pd.concat(metrics, ignore_index=True, sort=False) if metrics else pd.DataFrame(),
         pd.concat(cells_all, ignore_index=True, sort=False) if cells_all else pd.DataFrame(),
@@ -1286,6 +1326,7 @@ def run_training(args: argparse.Namespace, device: torch.device) -> None:
     all_per = []
     all_audits = []
 
+    report_step("Evaluating support-adapter baseline and no-adaptation baseline")
     support_metrics, support_cells, support_per = r250.evaluate_support_baseline(
         context["r243"],
         context["r208"],
@@ -1306,6 +1347,7 @@ def run_training(args: argparse.Namespace, device: torch.device) -> None:
     r247_ckpt = resolve_round247_adapter_checkpoint(args.round247_adapter_checkpoint)
     if r247_ckpt is not None:
         qgate_adapter, qgate_payload = r250.load_query_gated_baseline(r247, context["support_model"], r247_ckpt, device)
+        report_step("Evaluating query-gated support-initializer baseline")
         qgate_metrics, qgate_cells, qgate_per = r250.evaluate_query_gated_baseline(
             r247,
             {"r247": r247, "r243": context["r243"], "r208": context["r208"], "model": context["support_model"], "tables": context["tables"]},
@@ -1320,6 +1362,7 @@ def run_training(args: argparse.Namespace, device: torch.device) -> None:
         if len(qgate_per):
             all_per.append(qgate_per)
 
+    report_step("Evaluating trained cross-cell adapter across support sizes, selectors and splits")
     epi_metrics, epi_cells, epi_per, epi_audit = evaluate_epiqgate_all(
         context,
         r247,
@@ -1339,6 +1382,7 @@ def run_training(args: argparse.Namespace, device: torch.device) -> None:
 
     if not args.skip_hybrid:
         hybrid_sizes = [x for x in report_sizes if x in {32, 64}]
+        report_step("Evaluating hybrid adapter")
         hybrid_metrics, hybrid_cells, hybrid_per, hybrid_audit = evaluate_hybrid_all(
             context,
             r247,
@@ -1533,6 +1577,7 @@ def run_sweep(args: argparse.Namespace, device: torch.device) -> None:
     all_cells = []
     all_per = []
     all_audits = []
+    report_step("Evaluating support-adapter baseline and no-adaptation baseline")
     support_metrics, support_cells, support_per = r250.evaluate_support_baseline(
         context["r243"],
         context["r208"],
@@ -1550,6 +1595,7 @@ def run_sweep(args: argparse.Namespace, device: torch.device) -> None:
     if len(support_per):
         all_per.append(support_per)
 
+    report_step("Evaluating trained cross-cell adapter across support sizes, selectors and splits")
     epi_metrics, epi_cells, epi_per, epi_audit = evaluate_epiqgate_all(
         context,
         r247,
@@ -1696,7 +1742,7 @@ def main() -> None:
         args.report_support_sizes = [0, 32]
         args.report_selectors = ["diverse_label"]
     set_seed(int(args.run_seed))
-    device = torch.device(args.device if torch.cuda.is_available() and args.device.startswith("cuda") else "cpu")
+    device = torch.device(resolve_device(args.device))
     log(f"using device={device}")
     if args.phase == "audit_protocol":
         run_audit(args, device)

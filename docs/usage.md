@@ -16,10 +16,15 @@ example availability, command options and output.
 | Proteomic prediction | Abundances covering saved protein features | 16,583 genes | [Proteomics](prediction/proteomics.md) |
 | Multiple cell lines | Complete predictions over one matching target set | Same as inputs | [Consensus](prediction/consensus.md) |
 
-CPU is the default. Prediction commands except consensus accept `--device
-cuda:0`; check `torch.cuda.is_available()` if GPU execution is required because
-the API falls back to CPU when CUDA is unavailable. Use
-`metar predict SCENARIO --help` for all options.
+Model prediction defaults to `--device auto`, selecting CUDA when available,
+otherwise CPU. Use `--device cpu` to require CPU or `--device cuda:0` to require the
+first visible GPU; an unavailable explicit CUDA request is an error. Consensus
+has no device option. See [runtime reporting](runtime.md) for progress, quiet
+mode and logs, or `metar predict SCENARIO --help` for all options.
+
+Choose an output path distinct from your input files and selected model assets.
+The CLI rejects paths that would overwrite these files, including links to them.
+An existing prediction file at a separate destination can be replaced.
 
 ## Start with the bundled examples
 

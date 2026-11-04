@@ -20,6 +20,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 
 DEFAULT_OUT_DIR = Path("/home/lwn/claude/manuscript/write/sc_tahoe_multicell_reprocess_20260509")
 TARGET_EMBEDDING_PATH = Path(
@@ -279,7 +281,7 @@ def eval_seen_hitk(model, adata, drugs_arr, eval_cells_by_drug, drug2targets, se
     total = 0
     skipped = 0
     with torch.no_grad():
-        for drug in drugs_arr:
+        for completed, drug in enumerate(drugs_arr, start=1):
             positives = [t for t in drug2targets.get(drug, []) if t in seen_name2idx]
             if not positives or drug not in eval_cells_by_drug:
                 skipped += 1
@@ -290,6 +292,7 @@ def eval_seen_hitk(model, adata, drugs_arr, eval_cells_by_drug, drug2targets, se
                     "n_seen_positive": len(positives),
                     "n_eval_cells": int(len(eval_cells_by_drug.get(drug, []))),
                 })
+                report_progress(completed, len(drugs_arr), label=f"single-cell {split_name} evaluation drugs")
                 continue
             pos_idx = [seen_name2idx[t] for t in positives]
             x = fetch_x_batch(adata, eval_cells_by_drug[drug], device).view(1, -1, adata.n_vars)
@@ -309,6 +312,7 @@ def eval_seen_hitk(model, adata, drugs_arr, eval_cells_by_drug, drug2targets, se
                 row[f"hit@{k}"] = hit
             rows.append(row)
             total += 1
+            report_progress(completed, len(drugs_arr), label=f"single-cell {split_name} evaluation drugs")
     metrics = {
         f"{split_name}_n_total": int(len(drugs_arr)),
         f"{split_name}_n_eval": int(total),
@@ -327,9 +331,10 @@ def eval_holdout_all_percentiles(model, adata, exclusive_drugs, mixed_drugs, eva
     total = 0
     all_drugs = [(d, "exclusive") for d in exclusive_drugs] + [(d, "mixed") for d in mixed_drugs]
     with torch.no_grad():
-        for drug, category in all_drugs:
+        for completed, (drug, category) in enumerate(all_drugs, start=1):
             hs = holdout_idx_by_drug.get(drug, [])
             if not hs or drug not in eval_cells_by_drug:
+                report_progress(completed, len(all_drugs), label="single-cell holdout evaluation drugs")
                 continue
             x = fetch_x_batch(adata, eval_cells_by_drug[drug], device).view(1, -1, adata.n_vars)
             scores = model.forward_logits_batch(x, w_all).detach().cpu().numpy()[0]
@@ -347,6 +352,7 @@ def eval_holdout_all_percentiles(model, adata, exclusive_drugs, mixed_drugs, eva
                 hits[pct] += hit
                 row[f"hit_top{int(pct * 100)}pct"] = hit
             per_drug.append(row)
+            report_progress(completed, len(all_drugs), label="single-cell holdout evaluation drugs")
     out = {
         "holdout_all_n_eval": int(total),
     }
@@ -363,6 +369,7 @@ class SweepContext:
         self.out_dir = out_dir
         self.adata_path = adata_path
         self.cell_line = cell_line
+        report_step(f"Reading single-cell target embeddings: {TARGET_EMBEDDING_PATH}")
         self.target_df = pd.read_csv(TARGET_EMBEDDING_PATH, index_col=0)
         self.target_df = self.target_df[~self.target_df.index.duplicated(keep="first")]
         self.target_df.index = self.target_df.index.astype(str)
@@ -374,6 +381,7 @@ class SweepContext:
         self.gene_to_global = {g: i for i, g in enumerate(self.all_genes)}
         self.w_all = F.normalize(torch.tensor(self.target_df.values.astype(np.float32), device=device), dim=1)
 
+        report_step(f"Reading locked single-cell protocol: {PROTOCOL_JSON}")
         with PROTOCOL_JSON.open("r", encoding="utf-8") as f:
             self.protocol = json.load(f)
         if self.protocol.get("target_column") != "id":
@@ -381,6 +389,7 @@ class SweepContext:
         if self.protocol.get("protocol_tag") != "v3_corrected_gene_targets_fixed_cells":
             raise RuntimeError(f"Unexpected protocol tag: {self.protocol.get('protocol_tag')}")
 
+        report_step(f"Reading single-cell input: {adata_path}")
         self.adata = ad.read_h5ad(adata_path)
         if self.adata.n_vars != 128:
             raise RuntimeError(f"Expected 128 Tahoe features, got {self.adata.n_vars}")
@@ -405,6 +414,7 @@ class SweepContext:
         assert len(set(self.train_drugs_outer) & set(self.test_drugs)) == 0
         assert len(set(self.protocol["seen_targets"]) & set(self.protocol["holdout_targets"])) == 0
 
+        report_step(f"Building single-cell labels from {DTI_PATH}")
         self.scdrug = pd.read_csv(DTI_PATH, index_col=0)
         self.scdrug.columns = [c.lower() for c in self.scdrug.columns]
         if "drug" not in self.scdrug.columns or "id" not in self.scdrug.columns:
@@ -549,12 +559,14 @@ def train_one(ctx: SweepContext, loss_mode: str, seed: int, run_dir: Path) -> di
     history = []
     train_start = time.time()
     train_drugs = ctx.fit_drugs_no_gt10 if loss_mode == "outlier_filter_gt10_bce" else ctx.available_fit_drugs
+    run_label = f"single-cell {ctx.cell_line} {loss_mode} seed={seed}"
+    report_step(f"Training {run_label}; device={ctx.device} max_epochs={MAX_EPOCHS} steps_per_epoch={STEPS_PER_EPOCH} batch_size={BATCH_SIZE} lr={LR}")
 
     for epoch in range(1, MAX_EPOCHS + 1):
         model.train()
         losses = []
         t0 = time.time()
-        for _ in range(STEPS_PER_EPOCH):
+        for step in range(1, STEPS_PER_EPOCH + 1):
             xb, yb, _ = sample_batch(ctx.adata, train_drugs, ctx.cell_pool_by_drug, ctx.y_seen_by_drug, rng, ctx.device)
             optimizer.zero_grad()
             with torch.cuda.amp.autocast(enabled=(ctx.device.type == "cuda")):
@@ -566,8 +578,10 @@ def train_one(ctx: SweepContext, loss_mode: str, seed: int, run_dir: Path) -> di
             scaler.step(optimizer)
             scaler.update()
             losses.append(float(loss.item()))
+            report_progress(step, STEPS_PER_EPOCH, label=f"{run_label} epoch {epoch} batches", metrics={"loss": losses[-1]})
         scheduler.step()
 
+        report_step(f"Validating {run_label} epoch {epoch}")
         val_metrics, _ = eval_seen_hitk(
             model, ctx.adata, ctx.val_drugs, ctx.eval_cells_by_drug, ctx.drug2targets,
             ctx.seen_name2idx, ctx.gene_to_global, ctx.w_seen, "val", ctx.device
@@ -585,6 +599,7 @@ def train_one(ctx: SweepContext, loss_mode: str, seed: int, run_dir: Path) -> di
             row["beta"] = round(float(torch.sigmoid(model.beta_logit).item()), 6)
         row.update(val_metrics)
         history.append(row)
+        report_progress(epoch, MAX_EPOCHS, label=f"{run_label} epochs", metrics={"train_loss": row["train_loss"], "val_Hit@10": score})
         print(json.dumps(row, sort_keys=True), flush=True)
         if score > best_score + 1e-9:
             best_score = score
@@ -602,6 +617,7 @@ def train_one(ctx: SweepContext, loss_mode: str, seed: int, run_dir: Path) -> di
     torch.save(model.state_dict(), run_dir / "checkpoint.pth")
     train_time = time.time() - train_start
 
+    report_step(f"Evaluating selected {run_label}; best_epoch={best_epoch}")
     val_metrics, val_rows = eval_seen_hitk(
         model, ctx.adata, ctx.val_drugs, ctx.eval_cells_by_drug, ctx.drug2targets,
         ctx.seen_name2idx, ctx.gene_to_global, ctx.w_seen, "val", ctx.device
@@ -655,6 +671,12 @@ def train_one(ctx: SweepContext, loss_mode: str, seed: int, run_dir: Path) -> di
         "qa_target_space": ctx.qa,
     }
     (run_dir / "result.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
+    for split, metrics in (("validation", val_metrics), ("test", test_metrics), ("holdout", holdout_metrics)):
+        report_metrics(
+            {key: value for key, value in metrics.items()
+             if key.endswith(("Hit@5", "Hit@10", "Hit@20", "top5pct", "top10pct"))},
+            label=f"{run_label} selected {split} metrics",
+        )
     return result
 
 
@@ -795,7 +817,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--adata-path", required=True)
     parser.add_argument("--cell-line", required=True)
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR))
-    parser.add_argument("--device", default="cuda:1")
+    parser.add_argument("--device", default="auto")
     parser.add_argument("--loss-mode", choices=LOSS_MODES + ["all"], default="all")
     parser.add_argument("--seed", type=int, default=-1, help="-1 means all registered seeds")
     parser.add_argument("--force", action="store_true")
@@ -804,13 +826,13 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    device = torch.device(resolve_device(args.device))
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     src_script = Path(__file__).resolve()
     dst_script = (out_dir / "run_sc_label_bag_calibration_multicell.py").resolve()
     if src_script != dst_script:
         shutil.copy2(src_script, dst_script)
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
     print(f"device={device}", flush=True)
     print(f"out_dir={out_dir}", flush=True)
     print(f"adata_path={args.adata_path}", flush=True)

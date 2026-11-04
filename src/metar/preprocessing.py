@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from .io import split_targets
+from .io import split_targets, validate_identifiers
 
 
 @dataclass(frozen=True)
@@ -28,6 +28,9 @@ class ProteomicsPreprocessor:
             raise ValueError(
                 "proteomics preprocessing fields have inconsistent lengths"
             )
+        validate_identifiers(self.feature_names, label="proteomics feature names")
+        if not np.isfinite(self.mean).all():
+            raise ValueError("proteomics preprocessing means must be finite")
         if any(value <= 0 or not np.isfinite(value) for value in self.std):
             raise ValueError(
                 "proteomics standard deviations must be finite and positive"
@@ -51,9 +54,12 @@ class ProteomicsPreprocessor:
                     "the locked Round261 preprocessor requires nonnegative input before log1p"
                 )
             values = np.log1p(values)
-        return (values - np.asarray(self.mean, dtype=np.float32)) / np.asarray(
+        transformed = (values - np.asarray(self.mean, dtype=np.float32)) / np.asarray(
             self.std, dtype=np.float32
         )
+        if not np.isfinite(transformed).all():
+            raise ValueError("proteomics preprocessing produced nonfinite features")
+        return transformed
 
     def write(self, path: str | Path) -> Path:
         output = Path(path)
@@ -62,7 +68,7 @@ class ProteomicsPreprocessor:
         return output
 
     @classmethod
-    def read(cls, path: str | Path) -> "ProteomicsPreprocessor":
+    def read(cls, path: str | Path) -> ProteomicsPreprocessor:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         data["feature_names"] = tuple(data["feature_names"])
         data["mean"] = tuple(map(float, data["mean"]))

@@ -15,6 +15,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
 import torch
 import torch.nn.functional as F
 
@@ -902,6 +904,7 @@ def train_kg_decoder(
     graph_id: str,
     checkpoint_callback: Optional[Callable[[Path], None]] = None,
 ) -> Tuple[List[Path], pd.DataFrame]:
+    report_step('Preparing gene-prior graph training')
     set_seed()
     flow_id = flow["flow_id"]
     graph_dir = CHECKPOINTS / graph_id / flow_id
@@ -938,6 +941,8 @@ def train_kg_decoder(
     history = []
     checkpoint_paths: List[Path] = []
     log(f"{graph_id}/{flow_id} KG pretrain start: kind={flow['decoder_kind']} dim={flow['dim']} hidden={flow['hidden']} neg={n_neg} typed={flow.get('typed_negative', True)} train_edges={len(train_encoded)} val_edges={len(val_encoded)}")
+    report_progress(0, int(flow["kg_epochs"]), label='kg decoder epochs')
+    report_metrics(flow, label="Training settings")
     for epoch in range(1, int(flow["kg_epochs"]) + 1):
         model.train()
         losses = []
@@ -990,6 +995,7 @@ def train_kg_decoder(
         else:
             order = rng.permutation(n_edges)
             for start in range(0, n_edges, batch_size):
+                report_progress(start, n_edges, label=f"Epoch {epoch} training rows")
                 idx = order[start:start + batch_size]
                 hp = heads[idx]
                 rp = rels[idx]
@@ -1038,6 +1044,7 @@ def train_kg_decoder(
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 2.0)
                 opt.step()
                 losses.append(float(loss.detach().cpu()))
+            report_progress(n_edges, n_edges, label=f"Epoch {epoch} training rows")
         epoch_loss = float(np.mean(losses))
         rec = {"graph_id": graph_id, "flow_id": flow_id, "epoch": epoch, "kg_loss": epoch_loss}
         if epoch == 1 or epoch % 5 == 0 or epoch == int(flow["kg_epochs"]):
@@ -1046,6 +1053,11 @@ def train_kg_decoder(
         else:
             log(f"{graph_id}/{flow_id} KG epoch={epoch} loss={epoch_loss:.5f}")
         history.append(rec)
+        report_progress(epoch, int(flow["kg_epochs"]), label='kg decoder epochs')
+        report_metrics(
+            {key: rec[key] for key in ("kg_loss", "kg_val_loss", "kg_val_pair_acc") if key in rec},
+            label=f"Epoch {epoch}/{int(flow['kg_epochs'])}",
+        )
         if epoch in CHECKPOINT_EPOCHS:
             ckpt_flow = dict(flow)
             ckpt_flow["flow_id"] = f"{flow_id}_{graph_id}_kg{epoch:03d}"
@@ -1112,6 +1124,7 @@ class DiagReadout(torch.nn.Module):
 
 
 def split_data(rows: pd.DataFrame, x: np.ndarray, y: np.ndarray, r176) -> dict:
+    report_step('Building bulk train, validation and test splits')
     out = {}
     for split in ["inner_train", "val", "test"]:
         mask = rows["split"].astype(str).eq(split).to_numpy()
@@ -1130,8 +1143,10 @@ def predict(model: torch.nn.Module, x: np.ndarray, device: torch.device, batch_s
     out = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
+            report_progress(start, len(x), label='predict rows')
             xb = torch.tensor(x[start:start + batch_size], dtype=torch.float32, device=device)
             out.append(model(xb).detach().cpu().numpy())
+        report_progress(len(x), len(x), label='predict rows')
     return np.vstack(out)
 
 
@@ -1179,6 +1194,7 @@ def target_embeddings_from_ckpt(ckpt: dict, labels: List[str], output_flow_id: O
 
 
 def train_readout(flow: dict, ckpt: dict, data: dict, labels: List[str], r176, device: torch.device, readout_cfg: Optional[dict] = None) -> Tuple[dict, pd.DataFrame]:
+    report_step('Preparing bulk readout training')
     readout_cfg = dict(readout_cfg or READOUT_CONFIGS[0])
     base_flow_id = str(flow["flow_id"])
     flow = dict(flow)
@@ -1212,11 +1228,14 @@ def train_readout(flow: dict, ckpt: dict, data: dict, labels: List[str], r176, d
     patience = int(readout_cfg.get("patience", READOUT_PATIENCE))
     max_epochs = int(readout_cfg.get("max_epochs", 60))
     min_epochs = int(readout_cfg.get("min_epochs", READOUT_MIN_EPOCHS))
+    report_progress(0, max_epochs, label='readout epochs')
+    report_metrics(readout_cfg, label="Training settings")
     for epoch in range(1, max_epochs + 1):
         model.train()
         order = rng.permutation(n_train)
         losses = []
         for start in range(0, n_train, READOUT_BATCH_SIZE):
+            report_progress(start, n_train, label=f"Epoch {epoch} training rows")
             idx = torch.tensor(order[start:start + READOUT_BATCH_SIZE], dtype=torch.long, device=device)
             xb = tensors["inner_train"]["x"][idx]
             yb = tensors["inner_train"]["y"][idx]
@@ -1230,6 +1249,8 @@ def train_readout(flow: dict, ckpt: dict, data: dict, labels: List[str], r176, d
             torch.nn.utils.clip_grad_norm_(model.parameters(), 2.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(n_train, n_train, label=f"Epoch {epoch} training rows")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         train_scores = predict(model, data["inner_train"]["x"], device)
         val_scores = predict(model, data["val"]["x"], device)
         train_summary, _ = r176.compute_metrics(train_scores, data["inner_train"]["y"], data["inner_train"]["rows"], METHOD_NAME, flow_id, "drug-mean")
@@ -1245,6 +1266,11 @@ def train_readout(flow: dict, ckpt: dict, data: dict, labels: List[str], r176, d
             **{f"val_{k}": v for k, v in val_summary.items() if k in {"Hit@5", "Hit@10", "NDCG@10", "MeanAP"}},
         }
         history.append(rec)
+        report_progress(epoch, max_epochs, label='readout epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "val_Hit@10", "val_MeanAP")},
+            label=f"Epoch {epoch}/{max_epochs}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(f"{flow_id} readout epoch={epoch} train_Hit@10={rec['train_Hit@10']:.4f} val_Hit@10={rec['val_Hit@10']:.4f} val_MeanAP={rec['val_MeanAP']:.4f}")
         if better_val(val_summary, best_val, selection):
@@ -1259,12 +1285,17 @@ def train_readout(flow: dict, ckpt: dict, data: dict, labels: List[str], r176, d
             break
     if best_state is None or best_val is None:
         raise RuntimeError(f"No readout checkpoint selected for {flow_id}")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch, "Hit@10": best_val["Hit@10"], "MeanAP": best_val["MeanAP"]},
+        label="Selected readout validation metrics",
+    )
     model.load_state_dict(best_state)
     history_df = pd.DataFrame(history)
     history_df.to_csv(SOURCE / f"readout_history_{flow_id}.tsv", sep="\t", index=False)
     summaries = []
     per_rows = []
     for split in ["inner_train", "val", "test"]:
+        report_step(f"Evaluating selected readout: {split}")
         scores = predict(model, data[split]["x"], device)
         summary, per = r176.compute_metrics(scores, data[split]["y"], data[split]["rows"], METHOD_NAME, flow_id, "drug-mean")
         summary["best_epoch"] = best_epoch
@@ -1484,7 +1515,7 @@ def run_readout_only(args: argparse.Namespace) -> None:
     ckpt_path = Path(args.checkpoint).resolve()
     if not ckpt_path.exists():
         raise FileNotFoundError(ckpt_path)
-    device = torch.device(args.device if torch.cuda.is_available() and args.device.startswith("cuda") else "cpu")
+    device = torch.device(resolve_device(args.device))
     r176 = load_round176_module()
     _landmarks, labels, rows, x, y = r176.load_response()
     data = split_data(rows, x, y, r176)
@@ -1659,7 +1690,7 @@ def run_all(args: argparse.Namespace) -> None:
     r176 = load_round176_module()
     _landmarks, labels, rows, x, y = r176.load_response()
     data = split_data(rows, x, y, r176)
-    device = torch.device(args.device if torch.cuda.is_available() and args.device.startswith("cuda") else "cpu")
+    device = torch.device(resolve_device(args.device))
     analysis_df, graph_audits = train_kg_and_launch_readouts(args, r176, labels, rows, data, device)
     if analysis_df.empty:
         return

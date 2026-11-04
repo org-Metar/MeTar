@@ -105,9 +105,11 @@ metar describe
 
 For CUDA, choose a wheel from the
 [PyTorch installation selector](https://pytorch.org/get-started/locally/).
-Prediction defaults to CPU; add `--device cuda:0` for GPU execution. The
-[installation guide](docs/installation.md) covers other dependencies and
-platform details.
+Prediction and training default to `--device auto`; use `--device cpu` to
+require CPU or `--device cuda:0` to require the first visible GPU. See
+[runtime reporting and device selection](docs/runtime.md) for progress, logs
+and CUDA errors. The [installation guide](docs/installation.md) covers other
+dependencies and platform details.
 
 ### Download the pretrained models
 
@@ -257,8 +259,9 @@ uv pip install -e ".[training]"
 The commands below create separate workspaces and use prepared training data
 under `../metar_artifacts`. The linked guides list exactly which inputs are
 needed and how to supply compatible data of your own. Add `--check-only` to a
-preparation command to list missing inputs without writing; use `--copy-inputs`
-if your system cannot create symlinks.
+preparation command to list missing inputs without writing. Preparation copies
+affected inputs when symlinks are unavailable; use `--copy-inputs` to copy all
+inputs. See [training setup](docs/training.md) for workspace details.
 
 ### 4.1 · Train a single-cell encoder · reuse target embeddings
 

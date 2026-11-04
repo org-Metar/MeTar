@@ -13,6 +13,8 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
+
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
 import torch
 import torch.nn.functional as F
 
@@ -262,6 +264,7 @@ def split_to_numpy(split: dict) -> Tuple[pd.DataFrame, np.ndarray]:
 
 
 def prepare_data(labels: Sequence[str], target_cells: Sequence[str], mode: str, device: torch.device) -> Tuple[Dict[str, dict], dict]:
+    report_step('Preparing bulk expression data and gene graph')
     module = import_h07_module()
     protocol = module.bulk_base.load_protocol(LOCK_PATH)
     prepared = module.bulk_base.prepare_data(protocol, device)
@@ -510,8 +513,10 @@ def predict(model: FixedTargetReadout, x: np.ndarray, device: torch.device, para
     outs = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
+            report_progress(start, len(x), label='predict rows')
             xb = torch.tensor(x[start : start + batch_size], dtype=torch.float32, device=device)
             outs.append(model(xb, params=params).detach().cpu().numpy())
+        report_progress(len(x), len(x), label='predict rows')
     return np.vstack(outs)
 
 
@@ -531,6 +536,7 @@ def evaluate_item(model: FixedTargetReadout, item: dict, device: torch.device, m
 
 
 def train_pooled(model: FixedTargetReadout, tables: Dict[str, dict], device: torch.device, args: argparse.Namespace, tag: str) -> Tuple[dict, List[dict]]:
+    report_step('Preparing pooled bulk readout training')
     opt = torch.optim.AdamW(model.parameters(), lr=args.pooled_lr, weight_decay=args.weight_decay)
     train = tables["meta_train"]
     val = tables["meta_val"]
@@ -539,11 +545,14 @@ def train_pooled(model: FixedTargetReadout, tables: Dict[str, dict], device: tor
     best_epoch = 0
     stale = 0
     history: List[dict] = []
+    report_progress(0, args.pooled_epochs, label='pooled epochs')
+    report_metrics(vars(args), label="Training settings")
     for epoch in range(1, args.pooled_epochs + 1):
         model.train()
         order = np.random.permutation(len(train["rows"]))
         losses = []
         for start in range(0, len(order), args.batch_size):
+            report_progress(start, len(order), label=f"Epoch {epoch} training rows")
             idx = order[start : start + args.batch_size]
             xb, yb, wb = batch_tensors(train, idx, device)
             opt.zero_grad(set_to_none=True)
@@ -552,6 +561,8 @@ def train_pooled(model: FixedTargetReadout, tables: Dict[str, dict], device: tor
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(len(order), len(order), label=f"Epoch {epoch} training rows")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         train_summary, _ = evaluate_item(model, train, device, "Round208_A01_fixedtarget", f"{tag}_pooled", "drug-mean")
         val_summary, _ = evaluate_item(model, val, device, "Round208_A01_fixedtarget", f"{tag}_pooled", "drug-mean")
         rec = {
@@ -566,6 +577,11 @@ def train_pooled(model: FixedTargetReadout, tables: Dict[str, dict], device: tor
             "val_NDCG@10": val_summary["NDCG@10"],
         }
         history.append(rec)
+        report_progress(epoch, args.pooled_epochs, label='pooled epochs')
+        report_metrics(
+            {key: rec[key] for key in ("loss", "val_Hit@10", "val_MeanAP")},
+            label=f"Epoch {epoch}/{args.pooled_epochs}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(f"{tag} pooled epoch={epoch} val_Hit@10={rec['val_Hit@10']:.4f} val_MeanAP={rec['val_MeanAP']:.4f}")
         if better_metric(val_summary, best_val):
@@ -580,6 +596,10 @@ def train_pooled(model: FixedTargetReadout, tables: Dict[str, dict], device: tor
             break
     if best_state is None or best_val is None:
         raise RuntimeError(f"No pooled checkpoint selected for {tag}")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch, "Hit@10": best_val["Hit@10"], "MeanAP": best_val["MeanAP"]},
+        label="Selected bulk validation metrics",
+    )
     model.load_state_dict(best_state)
     torch.save({"model_state": best_state, "best_epoch": best_epoch, "best_val": best_val}, CHECKPOINTS / f"{tag}_pooled_fixedtarget.pth")
     return best_val, history
@@ -648,7 +668,8 @@ def eval_after_adaptation(
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     summaries = []
     per_rows = []
-    for cell, qidx in query_item["by_cell"].items():
+    for _cell_index, (cell, qidx) in enumerate(query_item["by_cell"].items()):
+        report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
         sidx_all = support_item["by_cell"].get(cell, np.asarray([], dtype=np.int64))
         if len(sidx_all) == 0 or len(qidx) == 0:
             continue
@@ -675,6 +696,7 @@ def eval_after_adaptation(
         per["adapt_support_size"] = support_size
         summaries.append(summary)
         per_rows.append(per)
+    report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     return pd.DataFrame(summaries), pd.concat(per_rows, ignore_index=True) if per_rows else pd.DataFrame()
 
 
@@ -713,6 +735,7 @@ def train_maml(
     inner_kind: str,
     args: argparse.Namespace,
 ) -> Tuple[dict, List[dict]]:
+    report_step('Preparing bulk meta-learning')
     inner_names = inner_parameter_names(inner_kind)
     opt = torch.optim.AdamW(model.parameters(), lr=args.meta_lr, weight_decay=args.weight_decay)
     train = tables["meta_train"]
@@ -724,10 +747,13 @@ def train_maml(
     best_epoch = 0
     stale = 0
     history: List[dict] = []
+    report_progress(0, args.meta_epochs, label='maml epochs')
+    report_metrics(vars(args), label="Training settings")
     for epoch in range(1, args.meta_epochs + 1):
         model.train()
         losses = []
         for _ in range(args.tasks_per_epoch):
+            report_progress(_, args.tasks_per_epoch, label=f"Epoch {epoch} training episodes")
             cell = random.choice(cells)
             all_idx = np.asarray(train["by_cell"][cell], dtype=np.int64)
             perm = np.random.permutation(all_idx)
@@ -744,6 +770,8 @@ def train_maml(
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(args.tasks_per_epoch, args.tasks_per_epoch, label=f"Epoch {epoch} training episodes")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         val_summary = meta_val_macro(model, tables, device, variant, inner_names, args)
         rec = {
             "stage": "maml",
@@ -755,6 +783,11 @@ def train_maml(
             "val_NDCG@10": val_summary["NDCG@10"],
         }
         history.append(rec)
+        report_progress(epoch, args.meta_epochs, label='maml epochs')
+        report_metrics(
+            {key: rec[key] for key in ("loss", "val_Hit@10", "val_MeanAP")},
+            label=f"Epoch {epoch}/{args.meta_epochs}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(f"{variant} epoch={epoch} val_Hit@10={rec['val_Hit@10']:.4f} val_MeanAP={rec['val_MeanAP']:.4f}")
         if better_metric(val_summary, best_val):
@@ -769,6 +802,10 @@ def train_maml(
             break
     if best_state is None or best_val is None:
         raise RuntimeError(f"No MAML checkpoint selected for {variant}")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch, "Hit@10": best_val["Hit@10"], "MeanAP": best_val["MeanAP"]},
+        label="Selected bulk validation metrics",
+    )
     model.load_state_dict(best_state)
     torch.save(
         {
@@ -920,7 +957,7 @@ def main() -> None:
 
     ensure_dirs()
     set_seed(args.seed)
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    device = torch.device(resolve_device(args.device))
     log(f"using device={device}")
     labels, target_init, a01_audit = labels_and_targets_from_a01(device)
     all_summaries = []

@@ -19,6 +19,8 @@ from typing import Any, Iterable, Optional
 import numpy as np
 import pandas as pd
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 try:
     import torch
     import torch.nn.functional as F
@@ -352,9 +354,11 @@ def predict_from_q_model(
     out = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
+            report_progress(start, len(x), label='predict from q model rows')
             xb = torch.tensor(x[start : start + batch_size], dtype=torch.float32, device=device)
             q = encode_q(model, xb)
             out.append(score_from_q(model, q, delta=delta, scale=scale).detach().cpu().numpy())
+        report_progress(len(x), len(x), label='predict from q model rows')
     return np.vstack(out) if out else np.zeros((0, model.n_targets), dtype=np.float32)
 
 
@@ -363,8 +367,10 @@ def precompute_q(model: nn.Module, item: dict, device: torch.device) -> None:
     model.eval()
     with torch.no_grad():
         for start in range(0, len(item["x"]), 2048):
+            report_progress(start, len(item["x"]), label='Query encoding rows')
             xb = torch.tensor(item["x"][start : start + 2048], dtype=torch.float32, device=device)
             out.append(encode_q(model, xb).detach().cpu().numpy().astype(np.float32))
+        report_progress(len(item["x"]), len(item["x"]), label='Query encoding rows')
     item["q"] = np.vstack(out).astype(np.float32) if out else np.zeros((0, model.dim), dtype=np.float32)
 
 
@@ -551,6 +557,7 @@ def choose_round243_cells(
 
 
 def build_round243_tables(r208, labels: list[str], cell_sets: dict[str, Any], device: torch.device) -> tuple[dict[str, dict], dict[str, Any]]:
+    report_step('Building leakage-safe bulk tables and standardizing features')
     module = r208.import_h07_module()
     protocol = module.bulk_base.load_protocol(r208.LOCK_PATH)
     prepared = module.bulk_base.prepare_data(protocol, device)
@@ -576,7 +583,8 @@ def build_round243_tables(r208, labels: list[str], cell_sets: dict[str, Any], de
         ("seen_test", "test", cell_sets["seen_diagnostic_cells"], "seen_test"),
     ]
     tables: dict[str, dict] = {}
-    for key, source_split, cells, split_name in specs:
+    for _table_index, (key, source_split, cells, split_name) in enumerate(specs):
+        report_progress(_table_index, len(specs), label="Bulk split tables")
         df_split, x_split = split_frames[source_split]
         rows, x_raw = r208.build_drugcell_table(df_split, x_split, labels, cells, split_name)
         tables[key] = {
@@ -585,6 +593,8 @@ def build_round243_tables(r208, labels: list[str], cell_sets: dict[str, Any], de
             "y": r208.true_target_matrix(rows, labels),
             "weights": r208.row_weights(rows) if len(rows) else np.zeros((0,), dtype=np.float32),
         }
+    report_progress(len(specs), len(specs), label="Bulk split tables")
+    report_step("Building profile-level bulk evaluation tables")
     for key, cells in [
         ("official_test_profile", cell_sets["official_unseen_cells"]),
         ("seen_test_profile", cell_sets["seen_diagnostic_cells"]),
@@ -598,6 +608,7 @@ def build_round243_tables(r208, labels: list[str], cell_sets: dict[str, Any], de
             "weights": r208.row_weights(rows) if len(rows) else np.zeros((0,), dtype=np.float32),
         }
 
+    report_step("Standardizing bulk features with training-only statistics")
     std_audit = r208.standardize_tables(tables["meta_train"]["x_raw"], tables)
     for item in tables.values():
         rows = item["rows"]
@@ -806,7 +817,8 @@ def evaluate_by_cell(
         encoder.eval()
     model.eval()
     with torch.no_grad():
-        for cell, qidx_raw in query_item["by_cell"].items():
+        for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+            report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
             qidx = np.asarray(qidx_raw, dtype=np.int64)
             if len(qidx) == 0:
                 continue
@@ -840,6 +852,7 @@ def evaluate_by_cell(
                 per["adapt_support_size"] = int(support_size if encoder is not None else 0)
                 per["shift_scale"] = float(shift_scale if encoder is not None else 0.0)
                 per_rows.append(per)
+        report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     return pd.DataFrame(cell_summaries), pd.concat(per_rows, ignore_index=True) if per_rows else pd.DataFrame()
 
 
@@ -869,6 +882,7 @@ def train_crosscell_base(
     device: torch.device,
     smoke: bool,
 ) -> tuple[nn.Module, pd.DataFrame, dict, Path]:
+    report_step('Preparing cross-cell readout training')
     cfg = deepcopy(READOUT_CFG)
     cfg["readout_id"] = "r243_phase1_base_round211_h256_cell_disjoint"
     if smoke:
@@ -899,11 +913,14 @@ def train_crosscell_base(
     stale = 0
     history = []
     batch_size = 256
+    report_progress(0, int(cfg["max_epochs"]), label='crosscell base epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, int(cfg["max_epochs"]) + 1):
         model.train()
         order = rng.permutation(len(train["x"]))
         losses = []
         for start in range(0, len(order), batch_size):
+            report_progress(start, len(order), label=f"Epoch {epoch} training rows")
             idx = torch.tensor(order[start : start + batch_size], dtype=torch.long, device=device)
             xb = tensors["meta_train"]["x"][idx]
             yb = tensors["meta_train"]["y"][idx]
@@ -915,6 +932,8 @@ def train_crosscell_base(
             torch.nn.utils.clip_grad_norm_(model.parameters(), 2.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(len(order), len(order), label=f"Epoch {epoch} training rows")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         val_scores = predict_from_q_model(model, val["x"], device, batch_size=1024)
         val_summary, _ = r208.compute_metrics(val_scores, val["y"], val["rows"], "Round243_Phase1", cfg["readout_id"], "drug-mean")
         train_scores = predict_from_q_model(model, train["x"], device, batch_size=1024)
@@ -931,6 +950,11 @@ def train_crosscell_base(
             "val_AUROC": float(val_summary["AUROC"]),
         }
         history.append(rec)
+        report_progress(epoch, int(cfg["max_epochs"]), label='crosscell base epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "val_Hit@10", "val_MeanAP")},
+            label=f"Epoch {epoch}/{int(cfg['max_epochs'])}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 "phase1 cell-disjoint base "
@@ -951,6 +975,10 @@ def train_crosscell_base(
             break
     if best_state is None or best_val is None:
         raise RuntimeError("No phase1 cell-disjoint base checkpoint selected")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch, "Hit@10": best_val["Hit@10"], "MeanAP": best_val["MeanAP"]},
+        label="Selected readout validation metrics",
+    )
     model.load_state_dict(best_state)
     ckpt_dir = CHECKPOINTS / cfg["readout_id"]
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -978,6 +1006,7 @@ def train_support_encoder(
     cfg: dict,
     smoke: bool,
 ) -> tuple[SupportDeltaEncoder, pd.DataFrame, dict, Path]:
+    report_step('Precomputing query representations for support-encoder training')
     for item in tables.values():
         precompute_q(model, item, device)
     support_target = current_target_tensor(model).detach()
@@ -1005,10 +1034,13 @@ def train_support_encoder(
     best_epoch = 0
     stale = 0
     history = []
+    report_progress(0, max_epochs, label='support encoder epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, max_epochs + 1):
         encoder.train()
         losses = []
         for _ in range(tasks_per_epoch):
+            report_progress(_, tasks_per_epoch, label=f"Epoch {epoch} training episodes")
             cell = str(rng.choice(cells))
             all_idx = np.asarray(train["by_cell"][cell], dtype=np.int64)
             perm = rng.permutation(all_idx)
@@ -1031,6 +1063,7 @@ def train_support_encoder(
             torch.nn.utils.clip_grad_norm_(encoder.parameters(), 2.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(tasks_per_epoch, tasks_per_epoch, label=f"Epoch {epoch} training episodes")
         val_cells, _ = evaluate_by_cell(
             r208,
             model,
@@ -1057,6 +1090,11 @@ def train_support_encoder(
             "delta_norm_mean": float(val_macro.get("delta_norm_mean", float("nan"))),
         }
         history.append(rec)
+        report_progress(epoch, max_epochs, label='support encoder epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "val_Hit@10", "val_MeanAP")},
+            label=f"Epoch {epoch}/{max_epochs}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 "phase1 support encoder "
@@ -1077,6 +1115,10 @@ def train_support_encoder(
             break
     if best_state is None or best is None:
         raise RuntimeError("No support encoder checkpoint selected")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch, "Hit@10": best["Hit@10"], "MeanAP": best["MeanAP"]},
+        label="Selected support encoder validation metrics",
+    )
     encoder.load_state_dict(best_state)
     ckpt_path = CHECKPOINTS / f"{cfg['variant']}.pth"
     torch.save(
@@ -2149,7 +2191,7 @@ def main() -> None:
         log("wrote bootstrap method_lock and audit")
         return
     require_torch()
-    device = torch.device(args.device if torch.cuda.is_available() and args.device.startswith("cuda") else "cpu")
+    device = torch.device(resolve_device(args.device))
     log(f"device={device} phase={args.phase} smoke={args.smoke}")
     if args.phase == "audit_protocol":
         write_protocol_audit(args, device)
