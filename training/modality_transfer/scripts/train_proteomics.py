@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import random
+from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
@@ -14,6 +15,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import DataLoader, Dataset
+
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
 
 
 SEED = int(os.environ.get("SEED", "2026"))
@@ -28,7 +31,7 @@ PT_DATA_DIR = os.path.expanduser(os.environ.get("PT_DATA_DIR", os.path.join(PT_M
 LABEL_REPR_PATH = os.path.expanduser(os.environ["LABEL_REPR_PATH"])
 OUT_PATH = os.path.expanduser(os.environ["OUT_PATH"])
 SAVE_CKPT_PATH = os.path.expanduser(os.environ.get("SAVE_CKPT_PATH", OUT_PATH.replace(".json", ".pth")))
-DEVICE = os.environ.get("DEVICE", "cuda:0")
+DEVICE = os.environ.get("DEVICE", "auto")
 
 VAL_FRAC = float(os.environ.get("VAL_FRAC", "0.2"))
 EPOCHS = int(os.environ.get("EPOCHS", "180"))
@@ -64,8 +67,10 @@ ALIAS_TO_LOCKED = {
     "8-Mar": "MARCHF8",
 }
 
-device = torch.device(DEVICE if torch.cuda.is_available() else "cpu")
-print(f"Device: {device}")
+device = torch.device(resolve_device(DEVICE))
+report_step(f"Proteomics settings: device={device} seed={SEED} epochs={EPOCHS} eval_every={EVAL_EVERY} batch_size={BATCH_SIZE} lr={LR} label_adapter={LABEL_ADAPTER_MODE}")
+for output_path in (OUT_PATH, SAVE_CKPT_PATH, PER_DRUG_PATH, HISTORY_TSV_PATH, METHOD_LOCK_PATH, METRIC_SUMMARY_PATH, LEAKAGE_AUDIT_PATH, SELECTED_RESULT_PATH):
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
 
 class ProteoDataset(Dataset):
@@ -259,7 +264,7 @@ def evaluate_seen(model_p, adapter, loader, w_seen, ks=(1, 3, 5, 10)):
     results = {f"Hit@{k}": [] for k in ks}
     results.update({f"NDCG@{k}": [] for k in ks})
     results.update({f"MAP@{k}": [] for k in ks})
-    for xb, yb, _ in loader:
+    for completed, (xb, yb, _) in enumerate(loader, start=1):
         xb = xb.to(device)
         logits = (model_p.forward_embed(xb) @ w_seen_adapt.t()) * model_p.logit_scale.exp().clamp(max=100.0)
         logits = logits.cpu().numpy()
@@ -272,6 +277,7 @@ def evaluate_seen(model_p, adapter, loader, w_seen, ks=(1, 3, 5, 10)):
                 results[f"Hit@{k}"].append(float(labels[i][topk].any()))
                 results[f"NDCG@{k}"].append(ndcg_at_k(logits[i], labels[i], k))
                 results[f"MAP@{k}"].append(average_precision_at_k(logits[i], labels[i], k))
+        report_progress(completed, len(loader), label="proteomics seen evaluation batches")
     return {k: (float(np.mean(v)) if v else 0.0) for k, v in results.items()}
 
 
@@ -284,7 +290,7 @@ def evaluate_holdout(model_p, adapter, loader, w_all, holdout_pos_to_global_t, k
     k = max(1, int(g * k_pct))
     hits = 0
     total = 0
-    for xb, _, yh in loader:
+    for completed, (xb, _, yh) in enumerate(loader, start=1):
         xb = xb.to(device)
         yh = yh.to(device)
         logits = (model_p.forward_embed(xb) @ w_all_adapt.t()) * model_p.logit_scale.exp().clamp(max=100.0)
@@ -297,6 +303,7 @@ def evaluate_holdout(model_p, adapter, loader, w_all, holdout_pos_to_global_t, k
             if (topk_idx[i].unsqueeze(1) == true_global.unsqueeze(0)).any():
                 hits += 1
             total += 1
+        report_progress(completed, len(loader), label=f"proteomics holdout top{int(k_pct * 100)}pct evaluation batches")
     return hits / total if total > 0 else 0.0
 
 
@@ -349,16 +356,19 @@ def per_drug_metrics(model_p, adapter, loader, rows_df, w_seen, w_all, holdout_p
                     row[f"holdout_top{label_pct}pct"] = np.nan
             rows.append(row)
         offset += len(seen_np)
+        report_progress(offset, len(rows_df), label="proteomics per-drug metrics profiles")
     return pd.DataFrame(rows)
 
 
 prot_path = os.path.join(PT_DATA_DIR, "proteomicsdb_data.csv")
+report_step(f"Loading proteomics profiles: {prot_path}")
 df = pd.read_csv(prot_path, index_col=0)
 df["target"] = df["target"].apply(ast.literal_eval)
 df = df[df["target"].apply(len) > 0].copy()
 df["drug"] = df["drug"].astype(str).str.strip().str.lower()
 df = df.reset_index(drop=True)
 
+report_step(f"Loading proteomics target embeddings: {LABEL_REPR_PATH}")
 df_w = pd.read_csv(LABEL_REPR_PATH, index_col=0)
 df_w = df_w[~df_w.index.duplicated(keep="first")]
 all_embed_genes = list(df_w.index)
@@ -379,6 +389,7 @@ def filter_targets(ts: List) -> List[str]:
     return out
 
 
+report_step("Preparing locked proteomics target holdout, drug splits and training-only feature normalization")
 df["target_filt"] = df["target"].apply(filter_targets)
 df = df[df["target_filt"].apply(len) > 0].copy().reset_index(drop=True)
 
@@ -492,13 +503,13 @@ loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
 history = []
 best_score = -1.0
 best_epoch = 0
-os.makedirs(os.path.dirname(SAVE_CKPT_PATH), exist_ok=True)
+report_step(f"Training proteomics; train_profiles={len(train_df)} val_profiles={len(val_df)} test_profiles={len(test_df)} seen_targets={L_seen} holdout_targets={H}")
 
 for epoch in range(1, EPOCHS + 1):
     model_p.train()
     label_adapter.train()
     losses = []
-    for xb, yb, _ in train_loader:
+    for completed, (xb, yb, _) in enumerate(train_loader, start=1):
         xb = xb.to(device)
         yb = yb.to(device)
         opt.zero_grad(set_to_none=True)
@@ -514,9 +525,11 @@ for epoch in range(1, EPOCHS + 1):
         scaler.step(opt)
         scaler.update()
         losses.append(float(loss.item()))
+        report_progress(completed, len(train_loader), label=f"proteomics epoch {epoch} batches", metrics={"loss": losses[-1]})
     scheduler.step()
 
     if epoch % EVAL_EVERY == 0 or epoch == 1 or epoch == EPOCHS:
+        report_step(f"Validating proteomics epoch {epoch}")
         val_seen = evaluate_seen(model_p, label_adapter, val_loader, w_seen)
         val_holdout = evaluate_holdout(model_p, label_adapter, val_loader, w_all, holdout_pos_to_global_t, k_pct=HOLDOUT_K_PERCENT)
         score = 0.60 * val_seen["Hit@10"] + 0.15 * val_seen["NDCG@10"] + 0.25 * val_holdout
@@ -534,7 +547,14 @@ for epoch in range(1, EPOCHS + 1):
         print(
             f"Epoch {epoch:03d} | loss={np.mean(losses):.4f} | "
             f"val Hit@10={val_seen['Hit@10']:.4f} | val NDCG@10={val_seen['NDCG@10']:.4f} | "
-            f"val holdout={val_holdout:.4f} | score={score:.4f}"
+            f"val holdout={val_holdout:.4f} | score={score:.4f}",
+            flush=True,
+        )
+        report_metrics(
+            {key: history[-1][key] for key in (
+                "train_loss", "val_hit10", "val_ndcg10", "val_holdout_top5pct", "score",
+            )},
+            label=f"proteomics epoch {epoch} validation",
         )
         if score > best_score:
             best_score = score
@@ -546,11 +566,14 @@ for epoch in range(1, EPOCHS + 1):
                 },
                 SAVE_CKPT_PATH,
             )
+    report_progress(epoch, EPOCHS, label="proteomics epochs")
 
+report_step(f"Reloading selected proteomics checkpoint; best_epoch={best_epoch} score={best_score}")
 best_ckpt = torch.load(SAVE_CKPT_PATH, map_location=device)
 model_p.load_state_dict(best_ckpt["model_state_dict"])
 label_adapter.load_state_dict(best_ckpt["label_adapter_state_dict"])
 
+report_step("Evaluating selected proteomics checkpoint on validation and final test splits")
 final_val_seen = evaluate_seen(model_p, label_adapter, val_loader, w_seen)
 final_val_holdout = evaluate_holdout(model_p, label_adapter, val_loader, w_all, holdout_pos_to_global_t, k_pct=HOLDOUT_K_PERCENT)
 final_test_seen = evaluate_seen(model_p, label_adapter, test_loader, w_seen)
@@ -606,12 +629,11 @@ result = {
     "history": history,
 }
 
-os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
+report_step("Writing proteomics selected result, per-drug metrics, history and audit records")
 with open(OUT_PATH, "w", encoding="utf-8") as f:
     json.dump(result, f, indent=2)
 
 per_drug = per_drug_metrics(model_p, label_adapter, test_loader, test_df.reset_index(drop=True), w_seen, w_all, holdout_pos_to_global_t)
-os.makedirs(os.path.dirname(PER_DRUG_PATH), exist_ok=True)
 per_drug.to_csv(PER_DRUG_PATH, sep="\t", index=False)
 
 pd.DataFrame(history).to_csv(HISTORY_TSV_PATH, sep="\t", index=False)
@@ -678,9 +700,15 @@ method_lock = {
     "best_val_score": result["best_val_score"],
     "config": result["config"],
 }
-os.makedirs(os.path.dirname(METHOD_LOCK_PATH), exist_ok=True)
 with open(METHOD_LOCK_PATH, "w", encoding="utf-8") as f:
     json.dump(method_lock, f, indent=2)
 
-print(json.dumps(result["final_test"], indent=2))
-print(f"Saved to {OUT_PATH}")
+for split, label in (("final_val", "validation"), ("final_test", "test")):
+    report_metrics(
+        {key: result[split][key] for key in (
+            "Hit@5", "Hit@10", "NDCG@10", "MAP@10", "holdout_top5pct",
+        )},
+        label=f"proteomics selected {label} metrics",
+    )
+print(json.dumps(result["final_test"], indent=2), flush=True)
+print(f"Saved to {OUT_PATH}", flush=True)

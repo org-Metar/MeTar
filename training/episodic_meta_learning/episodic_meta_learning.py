@@ -17,6 +17,8 @@ from typing import Any, Iterable, Optional
 import numpy as np
 import pandas as pd
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 try:
     import torch
     import torch.nn.functional as F
@@ -217,6 +219,7 @@ def resolve_query_gated_checkpoint(user_path: str | None = None) -> Path | None:
 
 
 def load_context(args: argparse.Namespace, device: torch.device):
+    report_step('Loading checkpoints and preparing bulk split tables')
     r243 = load_round243()
     r211 = r243.load_round211_module()
     r208 = r243.load_round208_module()
@@ -446,8 +449,10 @@ def predict_functional(
     out = []
     with torch.no_grad():
         for start in range(0, len(x), batch_size):
+            report_progress(start, len(x), label='predict functional rows')
             xb = torch.tensor(x[start : start + batch_size], dtype=torch.float32, device=device)
             out.append(functional_logits(model, xb, params=detached_params).detach().cpu().numpy())
+        report_progress(len(x), len(x), label='predict functional rows')
     return np.vstack(out) if out else np.zeros((0, model.n_targets), dtype=np.float32)
 
 
@@ -514,7 +519,8 @@ def evaluate_maml_by_cell(
     cell_summaries = []
     per_parts = []
     model.eval()
-    for cell, qidx_raw in query_item["by_cell"].items():
+    for _cell_index, (cell, qidx_raw) in enumerate(query_item["by_cell"].items()):
+        report_progress(_cell_index, len(query_item["by_cell"]), label=f"{variant}: cells inspected")
         qidx = np.asarray(qidx_raw, dtype=np.int64)
         if len(qidx) == 0:
             continue
@@ -545,6 +551,7 @@ def evaluate_maml_by_cell(
             per["adapt_support_size"] = int(support_size)
             per["used_support_rows"] = used_support
             per_parts.append(per)
+    report_progress(len(query_item["by_cell"]), len(query_item["by_cell"]), label=f"{variant}: cells inspected")
     cells = add_cell_count_columns(pd.DataFrame(cell_summaries), support_item)
     per_all = pd.concat(per_parts, ignore_index=True) if per_parts else pd.DataFrame()
     return cells, per_all
@@ -635,6 +642,7 @@ def train_maml_variant(
     initializer_checkpoint: Path,
     smoke: bool,
 ) -> tuple[nn.Module, pd.DataFrame, dict[str, Any]]:
+    report_step('Preparing episodic meta-learning')
     run_seed = int(cfg.get("run_seed", SEED))
     set_seed(run_seed)
     init_payload = torch.load(initializer_checkpoint, map_location="cpu", weights_only=False)
@@ -663,10 +671,13 @@ def train_maml_variant(
     best_epoch = 0
     stale = 0
     history = []
+    report_progress(0, int(cfg["max_epochs"]), label='maml variant epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, int(cfg["max_epochs"]) + 1):
         model.train()
         losses = []
         for _ in range(int(cfg["tasks_per_epoch"])):
+            report_progress(_, int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
             base_idx = rng.integers(0, n_train, size=int(cfg["batch_size"]))
             base_loss = loss_from_item(r243, model, train, base_idx, device, params=None, include_reg=False)
             cell = str(rng.choice(cells))
@@ -694,6 +705,8 @@ def train_maml_variant(
             torch.nn.utils.clip_grad_norm_(model.parameters(), 3.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+        report_progress(int(cfg["tasks_per_epoch"]), int(cfg["tasks_per_epoch"]), label=f"Epoch {epoch} training episodes")
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         rec = selection_record(
             r243,
             r208,
@@ -706,6 +719,11 @@ def train_maml_variant(
             inner_names,
         )
         history.append(rec)
+        report_progress(epoch, int(cfg["max_epochs"]), label='maml variant epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "pseudo_val_Hit@10", "pseudo_val_MeanAP")},
+            label=f"Epoch {epoch}/{int(cfg['max_epochs'])}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 f"{cfg['variant']} epoch={epoch} "
@@ -725,6 +743,12 @@ def train_maml_variant(
             break
     if best is None or best_state is None:
         raise RuntimeError(f"No MAML checkpoint selected for {cfg['variant']}")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch,
+         "pseudo_val_Hit@10": best["pseudo_val_Hit@10"],
+         "pseudo_val_MeanAP": best["pseudo_val_MeanAP"]},
+        label="Selected meta-learning validation metrics",
+    )
     model.load_state_dict(best_state)
     ckpt_dir = CHECKPOINTS / cfg["variant"]
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -838,8 +862,13 @@ def evaluate_maml_model(
         ("seen_support", "seen_test", "seen_test", "drug-mean", "seen_diagnostic", "Round250_EpMeta_seen_diagnostic"),
         ("seen_support", "seen_test_profile", "seen_test_profile", "true-profile-specific", "seen_diagnostic", "Round250_EpMeta_seen_diagnostic"),
     ]
+    support_sizes = tuple(support_sizes)
+    _eval_total = len(support_sizes) * len(splits)
+    _eval_completed = 0
+    report_progress(0, _eval_total, label='MAML evaluation blocks')
     for support_size in support_sizes:
         for support_key, query_key, split_name, unit, split_role, source in splits:
+            report_step(f"Evaluating support={support_size}, split={split_name}")
             variant = f"{selected['variant']}_{split_role}_maml_adapt{support_size}"
             cells, per = evaluate_maml_by_cell(
                 r243,
@@ -868,6 +897,8 @@ def evaluate_maml_model(
                 per["split_role"] = split_role
                 per["variant"] = variant
                 per_all.append(per)
+            _eval_completed += 1
+            report_progress(_eval_completed, _eval_total, label='MAML evaluation blocks')
     return pd.DataFrame(metrics), pd.concat(cells_all, ignore_index=True), pd.concat(per_all, ignore_index=True) if per_all else pd.DataFrame()
 
 
@@ -904,8 +935,13 @@ def evaluate_support_baseline(
         ("seen_support", "seen_test", "seen_test", "drug-mean", "seen_diagnostic", "Round246_support_adapt_seen_diagnostic"),
         ("seen_support", "seen_test_profile", "seen_test_profile", "true-profile-specific", "seen_diagnostic", "Round246_support_adapt_seen_diagnostic"),
     ]
+    support_sizes = tuple(support_sizes)
+    _eval_total = len(support_sizes) * len(splits)
+    _eval_completed = 0
+    report_progress(0, _eval_total, label='Support baseline evaluation blocks')
     for support_size in support_sizes:
         for support_key, query_key, split_name, unit, split_role, source in splits:
+            report_step(f"Evaluating support={support_size}, split={split_name}")
             enc = None if int(support_size) == 0 else adapter
             family = "seen_668_no_adapt" if enc is None else "seen_668_support_adapt"
             variant = (
@@ -937,6 +973,8 @@ def evaluate_support_baseline(
                 per["split_role"] = split_role
                 per["variant"] = variant
                 per_all.append(per)
+            _eval_completed += 1
+            report_progress(_eval_completed, _eval_total, label='Support baseline evaluation blocks')
     return pd.DataFrame(metrics), pd.concat(cells_all, ignore_index=True), pd.concat(per_all, ignore_index=True) if per_all else pd.DataFrame()
 
 
@@ -959,11 +997,17 @@ def evaluate_query_gated_baseline(
         ("seen_support", "seen_test", "seen_test", "drug-mean", "seen_diagnostic", "Round247_query_gated_seen_diagnostic"),
         ("seen_support", "seen_test_profile", "seen_test_profile", "true-profile-specific", "seen_diagnostic", "Round247_query_gated_seen_diagnostic"),
     ]
+    support_sizes = tuple(support_sizes)
+    selectors = tuple(selectors)
+    _eval_total = sum(int(size) > 0 for size in support_sizes) * len(splits) * len(selectors)
+    _eval_completed = 0
+    report_progress(0, _eval_total, label='Query-gated baseline evaluation blocks')
     for support_size in support_sizes:
         if int(support_size) <= 0:
             continue
         for selector in selectors:
             for support_key, query_key, split_name, unit, split_role, source in splits:
+                report_step(f"Evaluating support={support_size}, selector={selector}, split={split_name}")
                 variant = (
                     f"{BASE_REFERENCE['round247_query_gated']}_{split_role}"
                     f"_{selector}_s{support_size}"
@@ -1000,6 +1044,8 @@ def evaluate_query_gated_baseline(
                     per["variant"] = variant
                     per["selector"] = str(selector)
                     per_all.append(per)
+                _eval_completed += 1
+                report_progress(_eval_completed, _eval_total, label='Query-gated baseline evaluation blocks')
     return (
         pd.concat(metrics, ignore_index=True, sort=False) if metrics else pd.DataFrame(),
         pd.concat(cells_all, ignore_index=True, sort=False) if cells_all else pd.DataFrame(),
@@ -1520,7 +1566,7 @@ def main() -> None:
         args.patience = 1
         args.tasks_per_epoch = min(args.tasks_per_epoch, 4)
     set_seed(int(args.run_seed))
-    device = torch.device(args.device if torch.cuda.is_available() and args.device.startswith("cuda") else "cpu")
+    device = torch.device(resolve_device(args.device))
     log(f"using device={device}")
     if args.phase == "audit_protocol":
         run_audit(args, device)

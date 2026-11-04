@@ -108,5 +108,6 @@ metar doctor --scenario single-cell --cell-line A549 --input examples/inputs/sin
 Doctor may read the complete cell matrix. Prediction returns one target ranking
 per group and records `cell_line`, `cells_used` and `sampling_seed`. The
 [usual ranking columns](../usage.md#read-outputs-and-check-inputs) apply:
-`--top-k 0` keeps all candidates and `--top-k 20` keeps the first 20. CPU is the
-default; `--device cuda:0` requests a GPU.
+`--top-k 0` keeps all candidates and `--top-k 20` keeps the first 20.
+`--device auto` is the default; `--device cpu` requires CPU and `--device cuda:0`
+requires the first visible GPU. See [runtime reporting](../runtime.md).

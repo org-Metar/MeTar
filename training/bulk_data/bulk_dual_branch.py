@@ -24,6 +24,8 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
+
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -487,8 +489,11 @@ def build_holdout_bundle(df_holdout: pd.DataFrame, expr_cols: List[str], split_t
 
 
 def prepare_data(protocol: dict, device: torch.device) -> dict:
+    report_step('Preparing bulk expression data and gene graph')
     drug_to_targets = build_drug_to_targets()
+    report_step("Loading the PPI graph and gene universe")
     gene_list, gene2idx, adj_norm, ppi_edges, ppi_edges_set = load_ppi_and_gene_universe(drug_to_targets, device)
+    report_step("Loading and filtering bulk expression responses")
     df0, expr_cols = load_expression_dataframe(drug_to_targets)
 
     holdout_val_targets = set(protocol["holdout_targets"]["holdout_targets_val"])
@@ -531,10 +536,12 @@ def prepare_data(protocol: dict, device: torch.device) -> dict:
         & df_holdout_all["target"].map(lambda genes: bool(set(genes) & holdout_test_targets))
     ].copy()
 
+    report_step("Building bulk train, validation and test arrays")
     inner_split = build_split_arrays(inner_train_df, expr_cols, train_gene2local)
     val_split = build_split_arrays(val_df, expr_cols, train_gene2local)
     test_split = build_split_arrays(test_df, expr_cols, train_gene2local)
 
+    report_step("Building held-out target evaluation arrays")
     holdout_val_bundle = build_holdout_bundle(df_holdout_val_traincells, expr_cols, holdout_val_targets, gene2idx)
     holdout_test_bundle = build_holdout_bundle(df_holdout_test_traincells, expr_cols, holdout_test_targets, gene2idx)
 
@@ -588,10 +595,12 @@ def prepare_data(protocol: dict, device: torch.device) -> dict:
 
 
 def pretrain_gnn(gnn: nn.Module, adj_norm: torch.Tensor, ppi_edges: np.ndarray, ppi_edges_set: set, n_genes: int, device: torch.device, epochs: int, lr: float) -> None:
+    report_step('Pretraining gene graph encoder')
     opt = torch.optim.Adam(gnn.parameters(), lr=lr, weight_decay=1e-6)
     scheduler = CosineAnnealingLR(opt, T_max=epochs)
     n_pos = len(ppi_edges)
     batch_size = 2048
+    report_progress(0, epochs, label='pretrain gnn epochs')
     for epoch in range(1, epochs + 1):
         gnn.train()
         pos_idx = np.random.choice(n_pos, min(batch_size, n_pos), replace=False)
@@ -630,6 +639,7 @@ def pretrain_gnn(gnn: nn.Module, adj_norm: torch.Tensor, ppi_edges: np.ndarray, 
 
         if epoch % 10 == 0 or epoch == epochs:
             logger.info("GNN pretrain epoch %02d/%02d | loss=%.4f", epoch, epochs, loss.item())
+        report_progress(epoch, epochs, label='pretrain gnn epochs')
 
 
 def build_label_mask(y: torch.Tensor) -> torch.Tensor:
@@ -824,11 +834,13 @@ def evaluate_seen_split(model: MetaTwoTowerGNN, split: dict, gene_repr_subset: t
     x = split["x"]
     y = split["y"].astype(np.float32)
     for start in range(0, len(x), batch_size):
+        report_progress(start, len(x), label='evaluate seen split rows')
         xb = torch.from_numpy(x[start:start + batch_size]).to(device)
         zb = F.normalize(model.sample(xb), dim=1)
         logits = (zb @ weights.t()) * scale
         preds.append(logits.cpu().numpy())
         labels.append(y[start:start + batch_size])
+    report_progress(len(x), len(x), label='evaluate seen split rows')
 
     pred_mat = np.concatenate(preds, axis=0)
     label_mat = np.concatenate(labels, axis=0)
@@ -868,6 +880,7 @@ def evaluate_holdout_top5(model: MetaTwoTowerGNN, bundle: dict, full_gene_repr: 
     total = 0
 
     for start in range(0, len(bundle["x"]), batch_size):
+        report_progress(start, len(bundle["x"]), label='evaluate holdout top5 rows')
         end = min(start + batch_size, len(bundle["x"]))
         xb = torch.from_numpy(bundle["x"][start:end]).to(device)
         zb = F.normalize(model.sample(xb), dim=1)
@@ -878,6 +891,7 @@ def evaluate_holdout_top5(model: MetaTwoTowerGNN, bundle: dict, full_gene_repr: 
             if any(t in row_topk_set for t in true_idx):
                 successes += 1
             total += 1
+    report_progress(len(bundle["x"]), len(bundle["x"]), label='evaluate holdout top5 rows')
 
     return {"top5pct_success": successes / total if total > 0 else 0.0, "n_samples": int(total)}
 
@@ -903,11 +917,13 @@ def evaluate_seen_split_dual(
     y = split["y"].astype(np.float32)
 
     for start in range(0, len(x), batch_size):
+        report_progress(start, len(x), label='evaluate seen split dual rows')
         xb = torch.from_numpy(x[start:start + batch_size]).to(device)
         zb = F.normalize(model.sample_forward(xb, head=head), dim=1)
         logits = (zb @ weights.t()) * scale
         preds.append(logits.cpu().numpy())
         labels.append(y[start:start + batch_size])
+    report_progress(len(x), len(x), label='evaluate seen split dual rows')
 
     pred_mat = np.concatenate(preds, axis=0)
     label_mat = np.concatenate(labels, axis=0)
@@ -953,6 +969,7 @@ def evaluate_holdout_top5_dual(
     total = 0
 
     for start in range(0, len(bundle["x"]), batch_size):
+        report_progress(start, len(bundle["x"]), label='evaluate holdout top5 dual rows')
         end = min(start + batch_size, len(bundle["x"]))
         xb = torch.from_numpy(bundle["x"][start:end]).to(device)
         zb = F.normalize(model.sample_forward(xb, head=head), dim=1)
@@ -963,6 +980,7 @@ def evaluate_holdout_top5_dual(
             if any(t in row_topk_set for t in true_idx):
                 successes += 1
             total += 1
+    report_progress(len(bundle["x"]), len(bundle["x"]), label='evaluate holdout top5 dual rows')
 
     return {"top5pct_success": successes / total if total > 0 else 0.0, "n_samples": int(total)}
 
@@ -1077,6 +1095,7 @@ def freeze_module(module: nn.Module) -> None:
 
 
 def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
+    report_step('Preparing bulk dual-head training')
     set_seed(args.seed)
     variant = args.variant
     n_genes = len(data["gene_list"])
@@ -1173,6 +1192,8 @@ def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
     history_rows = []
 
     train_start = time.time()
+    report_progress(0, args.n_epochs, label='dualhead variant epochs')
+    report_metrics(vars(args), label="Training settings")
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         meta_seen_total = 0.0
@@ -1182,6 +1203,7 @@ def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
         epoch_start = time.time()
 
         for _ in range(args.steps_per_epoch):
+            report_progress(_, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
             sampled_cells = random.sample(train_cells, min(args.meta_batch, len(train_cells)))
             optimizer.zero_grad()
 
@@ -1251,6 +1273,7 @@ def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
             meta_unseen_total += batch_unseen_loss.item()
             geom_loss_total += batch_geom_loss.item()
             valid_steps += 1
+        report_progress(args.steps_per_epoch, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
 
         scheduler.step()
         avg_seen_loss = meta_seen_total / max(valid_steps, 1)
@@ -1286,6 +1309,14 @@ def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
                     "unseen_score": unseen_score,
                     "epoch_time_s": time.time() - epoch_start,
                 }
+            )
+            report_progress(epoch, args.n_epochs, label='dualhead variant epochs')
+            report_metrics(
+                {key: history_rows[-1][key] for key in (
+                    "meta_seen_loss", "meta_unseen_loss", "val_seen_hit10",
+                    "val_seen_map", "val_holdout_top5pct",
+                )},
+                label=f"Epoch {epoch}/{args.n_epochs}",
             )
             logger.info(
                 "Epoch %02d/%02d | seen_loss=%.4f | unseen_loss=%.4f | geom=%.4f | seen_hit10=%.4f | seen_auc=%.4f | unseen_proxy_hit10=%.4f | holdout=%.4f | seen_score=%.4f | unseen_score=%.4f",
@@ -1429,6 +1460,7 @@ def train_dualhead_variant(args, data: dict, device: torch.device) -> dict:
 
 
 def train_variant(args, data: dict, device: torch.device) -> dict:
+    report_step('Preparing bulk training')
     if is_dualhead_variant(args.variant):
         return train_dualhead_variant(args, data, device)
 
@@ -1477,6 +1509,8 @@ def train_variant(args, data: dict, device: torch.device) -> dict:
     history_rows = []
 
     train_start = time.time()
+    report_progress(0, args.n_epochs, label='variant epochs')
+    report_metrics(vars(args), label="Training settings")
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         meta_loss_total = 0.0
@@ -1485,6 +1519,7 @@ def train_variant(args, data: dict, device: torch.device) -> dict:
         epoch_start = time.time()
 
         for _ in range(args.steps_per_epoch):
+            report_progress(_, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
             sampled_cells = random.sample(train_cells, min(args.meta_batch, len(train_cells)))
             optimizer.zero_grad()
 
@@ -1534,6 +1569,7 @@ def train_variant(args, data: dict, device: torch.device) -> dict:
             meta_loss_total += batch_meta_loss.item()
             geom_loss_total += batch_geom_loss.item()
             valid_steps += 1
+        report_progress(args.steps_per_epoch, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
 
         scheduler.step()
         avg_meta_loss = meta_loss_total / max(valid_steps, 1)
@@ -1564,6 +1600,13 @@ def train_variant(args, data: dict, device: torch.device) -> dict:
                 "epoch_time_s": time.time() - epoch_start,
             }
             history_rows.append(row)
+            report_progress(epoch, args.n_epochs, label='variant epochs')
+            report_metrics(
+                {key: history_rows[-1][key] for key in (
+                    "meta_loss", "val_hit10", "val_meanap", "val_holdout_top5pct",
+                )},
+                label=f"Epoch {epoch}/{args.n_epochs}",
+            )
             logger.info(
                 "Epoch %02d/%02d | loss=%.4f | geom=%.4f | val_hit10=%.4f | val_auroc=%.4f | val_ndcg10=%.4f | val_map=%.4f | val_holdout=%.4f | val_score=%.4f",
                 epoch,
@@ -1725,7 +1768,7 @@ def main():
     args = parse_args()
     configure_logging(args.variant)
     set_seed(args.seed)
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    device = torch.device(resolve_device(args.device))
     logger.info("Project root: %s", PROJECT_ROOT)
     logger.info("Variant: %s", args.variant)
     logger.info("Device: %s", device)

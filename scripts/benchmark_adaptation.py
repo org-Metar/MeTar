@@ -16,6 +16,7 @@ import torch
 from benchmark_utils import hash_matches_manifest, import_module, sha256_file
 from metar.io import load_target_table
 from metar.predict import predict_cross_cell, predict_single_cell
+from metar.runtime import report_metrics, report_step, resolve_device
 
 
 SELECTED_CROSS_VARIANT = (
@@ -98,7 +99,12 @@ def build_round252_context(
 
 
 def verify_cross_cell(args: argparse.Namespace) -> dict[str, Any]:
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    args.device = resolve_device(getattr(args, "device", "auto"))
+    device = torch.device(args.device)
+    report_metrics(
+        {"setting": "cross-cell verification", "device": args.device}, label="Setting"
+    )
+    report_step("Load locked cross-cell inputs and support context")
     r252, r247, context = build_round252_context(args, device)
     support_item = context["tables"]["official_support"]
     query_item = context["tables"]["official_test"]
@@ -112,6 +118,7 @@ def verify_cross_cell(args: argparse.Namespace) -> dict[str, Any]:
     score_parts = []
     score_cells = []
     score_drugs = []
+    report_step("Score cross-cell queries and compare existing reference metrics")
     for cell, raw_indices in query_item["by_cell"].items():
         query_indices = np.asarray(raw_indices, dtype=np.int64)
         support_all = np.asarray(support_item["by_cell"][cell], dtype=np.int64)
@@ -209,7 +216,7 @@ def verify_cross_cell(args: argparse.Namespace) -> dict[str, Any]:
         drugs=np.asarray(score_drugs),
         targets=np.asarray(context["labels"]),
     )
-    return {
+    summary = {
         "status": "PASS"
         if len(observed) == len(expected) and max_delta <= 1.0e-7
         else "FAIL",
@@ -220,9 +227,20 @@ def verify_cross_cell(args: argparse.Namespace) -> dict[str, Any]:
         "cells": int(observed["cell_line"].nunique()),
         "max_metric_abs_delta": max_delta,
     }
+    report_metrics(
+        {"status": summary["status"], "rows": len(observed),
+         "cells": summary["cells"], "max_metric_abs_delta": max_delta},
+        label="Summary",
+    )
+    return summary
 
 
 def verify_single_cell(args: argparse.Namespace) -> dict[str, Any]:
+    args.device = resolve_device(getattr(args, "device", "auto"))
+    report_metrics(
+        {"setting": "single-cell verification", "device": args.device}, label="Setting"
+    )
+    report_step("Load locked single-cell evaluation inputs")
     base = import_module(
         "article_exact_round260_base",
         args.round259 / "scripts/run_sc_label_bag_calibration_multicell_base.py",
@@ -245,6 +263,7 @@ def verify_single_cell(args: argparse.Namespace) -> dict[str, Any]:
     base.FORBIDDEN_TARGET_REPR = args.package / "data/processed/tahoe/label_repr_all.csv"
     selection_root = args.package / "data/processed/tahoe/selected_runs"
     for cell_line, (selection, loss_mode, seed, filename) in CELL_SELECTIONS.items():
+        report_step(f"Score {cell_line} cells and compare the existing reference")
         selected = json.loads((selection_root / selection).read_text())
         if str(selected["loss_mode"]) != loss_mode or int(selected["seed"]) != seed:
             raise RuntimeError(f"unexpected selected Round260 run for {cell_line}")
@@ -299,10 +318,16 @@ def verify_single_cell(args: argparse.Namespace) -> dict[str, Any]:
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
-    return {
+    summary = {
         "status": "PASS"
         if all(item["status"] == "PASS" for item in results.values())
         else "FAIL",
         "cell_lines": results,
         "reference_rows": len(reference),
     }
+    report_metrics(
+        {"status": summary["status"], "cell_lines": len(results),
+         "reference_rows": len(reference)},
+        label="Summary",
+    )
+    return summary

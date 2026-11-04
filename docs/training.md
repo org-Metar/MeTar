@@ -51,9 +51,12 @@ python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../me
 `--reuse-pretrained` copies only that stage's required upstream weights or
 target embeddings into the new directory. It never copies the selected output
 of the stage being trained. Sources, metadata and reused weights are private
-files; large input datasets are read-only file links by default. Add
-`--copy-inputs` to make private dataset copies, including on Windows where
-symlinks are unavailable or when replacing inputs with your own data.
+files; large input datasets are read-only file links by default. If the system
+does not permit input symlinks, preparation copies the affected inputs, prints
+one notice and records `input_mode: copy_fallback` in `training_workspace.json`.
+Add `--copy-inputs` to copy all inputs, including when replacing them with your
+own data. Compatibility aliases are also copied when links are unavailable;
+keep these copies aligned when replacing inputs.
 
 The destination must not exist and must be outside the code and artifact
 directories. Preparation refuses to overwrite an existing workspace. Add
@@ -71,11 +74,9 @@ workspace. On Windows, choose a short destination such as `C:/mt-train` and
 enable long-path support if needed. Linux is the recommended environment
 for the complete training chain.
 
-The bulk cache builder also creates a temporary file symlink. Workspace
-preparation's `--copy-inputs` option does not change that separate command.
-Building a missing bulk cache on Windows therefore still requires symlink
-permission (for example, an enabled Developer Mode); otherwise use Linux/WSL
-or an already prepared compatible cache.
+The bulk cache builder creates a temporary graph link, using a temporary copy
+when links are unavailable. It removes only the compatibility file it created
+and preserves a matching pre-existing file.
 
 ## Check, train and find the results
 
@@ -84,9 +85,11 @@ metar train --stage single-cell --cell-line A549 --workspace ../metar-training-a
 metar train --stage single-cell --cell-line A549 --workspace ../metar-training-a549 --device cuda:0
 ```
 
-`--check-only` verifies the selected stage's dependencies and workspace
-isolation. `--dry-run` prints its command without checking inputs. Training
-runs the selected paper configuration, rather than a hyperparameter search.
+`--check-only` verifies the selected stage's input files and workspace
+isolation. Installed optional modules and the requested device are checked
+before actual training starts. `--dry-run` prints its command without checking
+inputs. Training runs the selected paper configuration, rather than a
+hyperparameter search.
 Use a new workspace for a new run: existing selected outputs are not replaced.
 `--device cpu` is available for compatible stages, but the full training chain
 can require substantial compute and has not been rerun end to end on CPU.

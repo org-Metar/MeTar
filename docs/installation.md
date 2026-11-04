@@ -1,6 +1,6 @@
 # Installation
 
-Use Python 3.11 for the checked CPU workflow. Package metadata accepts Python
+Use Python 3.11 for the checked CPU and NVIDIA GPU workflows. Package metadata accepts Python
 3.10 or newer; the retained third-party comparators have separate environment
 requirements. The prediction package and large model/data downloads are installed
 separately.
@@ -62,11 +62,11 @@ uv pip install -e ".[single-cell,parquet]"
 Use this route instead of the CPU wheel when GPU execution is needed. Select a
 compatible wheel for your platform and driver using the official
 [PyTorch installation selector](https://pytorch.org/get-started/locally/).
-The CUDA 12.8 commands below are an example, not a separately validated project
-runtime:
+The full training and prediction checks used Python 3.11 and PyTorch
+`2.14.1+cu126` on Linux. For the same PyTorch build:
 
 ```bash
-uv pip install torch --index-url https://download.pytorch.org/whl/cu128
+uv pip install "torch==2.14.1" --index-url https://download.pytorch.org/whl/cu126
 uv pip install -e ".[single-cell,parquet]"
 ```
 
@@ -79,10 +79,12 @@ metar predict --help
 ```
 
 `metar describe` lists the six prediction workflows and available training
-stages. It does not require downloaded weights. Prediction defaults to CPU;
-add `--device cuda:0` for the first GPU. The prediction API falls back to CPU
-when CUDA is unavailable, so check the printed availability if GPU execution
-is required.
+stages. It does not require downloaded weights. Prediction and training default
+to `--device auto`, which selects CUDA when available, otherwise CPU. Use
+`--device cpu` to require CPU or `--device cuda:0` to require the first visible
+GPU; an unavailable explicit CUDA request is an error. See
+[runtime reporting and device selection](runtime.md) for progress, quiet mode
+and CUDA visibility.
 
 The optional tests can be run after installing the development extra:
 

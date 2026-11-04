@@ -16,6 +16,8 @@ from typing import Any, Iterable
 import numpy as np
 import pandas as pd
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 try:
     import torch
     import torch.nn.functional as F
@@ -134,6 +136,7 @@ def load_round243():
 
 
 def load_context(args: argparse.Namespace, device: torch.device):
+    report_step('Loading checkpoints and preparing bulk split tables')
     r243 = load_round243()
     r211 = r243.load_round211_module()
     r208 = r243.load_round208_module()
@@ -516,6 +519,7 @@ def checkpoint_reload_audit(
     tables: dict[str, dict],
     device: torch.device,
 ) -> dict[str, float]:
+    report_step('Verifying saved joint checkpoint')
     payload = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     reloaded_model = r211.DiagReadout(target_init, readout_cfg).to(device)
     reloaded_adapter = r243.SupportDeltaEncoder(
@@ -569,6 +573,7 @@ def train_joint_variant(
     cfg: dict[str, Any],
     smoke: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, dict[str, Any]]:
+    report_step('Preparing joint bulk model and support adapter')
     readout_cfg = deepcopy(READOUT_CFG)
     readout_cfg["readout_id"] = cfg["variant"]
     if smoke:
@@ -618,6 +623,8 @@ def train_joint_variant(
     patience = int(readout_cfg["patience"])
     tasks_per_epoch = int(cfg["tasks_per_epoch"])
 
+    report_progress(0, max_epochs, label='joint variant epochs')
+    report_metrics(cfg, label="Training settings")
     for epoch in range(1, max_epochs + 1):
         model.train()
         adapter.train()
@@ -626,6 +633,7 @@ def train_joint_variant(
         episode_losses = []
         delta_norms = []
         for _ in range(tasks_per_epoch):
+            report_progress(_, tasks_per_epoch, label=f"Epoch {epoch} training episodes")
             base_idx = torch.tensor(rng.integers(0, n_train, size=batch_size), dtype=torch.long, device=device)
             xb = train_tensors["x"][base_idx]
             yb = train_tensors["y"][base_idx]
@@ -659,6 +667,7 @@ def train_joint_variant(
             base_losses.append(float(base_loss.detach().cpu()))
             episode_losses.append(float(episode_loss.detach().cpu()))
             delta_norms.append(float(torch.linalg.vector_norm(delta).detach().cpu()))
+        report_progress(tasks_per_epoch, tasks_per_epoch, label=f"Epoch {epoch} training episodes")
 
         loss_parts = {
             "loss": float(np.mean(losses)),
@@ -666,8 +675,14 @@ def train_joint_variant(
             "episode_loss": float(np.mean(episode_losses)),
             "delta_norm": float(np.mean(delta_norms)),
         }
+        report_step(f"Epoch {epoch}: evaluating existing training and validation metrics")
         rec = selection_record(r243, r208, model, adapter, tables, device, cfg, epoch, loss_parts)
         history.append(rec)
+        report_progress(epoch, max_epochs, label='joint variant epochs')
+        report_metrics(
+            {key: rec[key] for key in ("train_loss", "pseudo_val_Hit@10", "pseudo_val_MeanAP")},
+            label=f"Epoch {epoch}/{max_epochs}",
+        )
         if epoch == 1 or epoch % 5 == 0:
             log(
                 f"{cfg['variant']} epoch={epoch} "
@@ -691,6 +706,12 @@ def train_joint_variant(
 
     if best is None or best_state is None:
         raise RuntimeError(f"No checkpoint selected for {cfg['variant']}")
+    report_metrics(
+        {"epochs_run": len(history), "best_epoch": best_epoch,
+         "pseudo_val_Hit@10": best["pseudo_val_Hit@10"],
+         "pseudo_val_MeanAP": best["pseudo_val_MeanAP"]},
+        label="Selected joint bulk validation metrics",
+    )
     model.load_state_dict(best_state["readout"], strict=True)
     adapter.load_state_dict(best_state["support_adapter"], strict=True)
 
@@ -726,6 +747,7 @@ def train_joint_variant(
         device,
     )
 
+    report_step("Evaluating the selected joint bulk checkpoint")
     metrics, per = evaluate_joint(r243, r208, model, adapter, tables, device, cfg, keep_per_unit=True)
     metrics["checkpoint"] = str(ckpt_path)
     selected = {
@@ -1068,7 +1090,7 @@ def main() -> None:
     ensure_dirs()
     args = parse_args()
     set_seed(SEED)
-    device = torch.device(args.device if torch is not None and args.device == "cuda" and torch.cuda.is_available() else "cpu") if torch is not None else None
+    device = torch.device(resolve_device(args.device)) if torch is not None else None
     if args.phase == "audit_protocol":
         write_protocol_audit(args, device)
         write_method_lock(extra={"audit_only": str(SOURCE / "round246_protocol_audit.json")})

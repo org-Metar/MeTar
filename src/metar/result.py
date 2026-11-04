@@ -8,6 +8,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from .io import validate_identifiers
+
 
 @dataclass(frozen=True)
 class PredictionResult:
@@ -23,6 +25,9 @@ class PredictionResult:
         scores = np.asarray(self.scores)
         if scores.ndim != 2:
             raise ValueError(f"scores must be two-dimensional, observed {scores.shape}")
+        object.__setattr__(self, "scores", scores)
+        validate_identifiers(self.targets, label="target labels")
+        validate_identifiers(self.query_ids, label="query identifiers")
         if not np.isfinite(scores).all():
             raise ValueError("scores must be finite before ranking")
         if scores.shape != (len(self.query_ids), len(self.targets)):
@@ -79,6 +84,8 @@ class PredictionResult:
     def write(
         self, path: str | Path, *, output_format: str = "long", top_k: int = 0
     ) -> Path:
+        if output_format not in {"long", "wide"}:
+            raise ValueError("output_format must be long or wide")
         output = Path(path)
         output.parent.mkdir(parents=True, exist_ok=True)
         frame = self.to_long(top_k=top_k) if output_format == "long" else self.to_wide()

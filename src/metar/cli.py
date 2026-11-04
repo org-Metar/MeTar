@@ -28,8 +28,14 @@ from .predict import (
 )
 from .preprocessing import ProteomicsPreprocessor, fit_round261_preprocessor
 from .result import PredictionResult
+from .runtime import (
+    RunReporter,
+    report_metrics,
+    report_progress,
+    report_step,
+    resolve_device,
+)
 from .training import SINGLE_CELL_SELECTIONS, run_training_stage
-
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_ROOT = Path(os.environ.get("METAR_ARTIFACT_ROOT", PACKAGE_ROOT)).expanduser()
@@ -71,7 +77,84 @@ def _require_path(value: str | None, label: str) -> Path:
     path = Path(value).resolve()
     if not path.is_file():
         raise FileNotFoundError(path)
+    if path.stat().st_size == 0:
+        raise ValueError(
+            f"{label} is empty: {path}; restore the complete input or release asset"
+        )
     return path
+
+
+def _validate_prediction_output(args: argparse.Namespace) -> None:
+    """Reject destinations that would replace an input or a selected model asset."""
+    protected: list[Path] = []
+    for name in (
+        "input",
+        "support_input",
+        "support_labels",
+        "support_weights",
+        "checkpoint",
+        "adapter_checkpoint",
+        "target_table",
+        "preprocessor",
+        "reference_data",
+        "target_order",
+        "feature_order",
+    ):
+        value = getattr(args, name, None)
+        if value:
+            values = value if isinstance(value, list) else [value]
+            protected.extend(Path(item).expanduser() for item in values)
+
+    def select(explicit: str | None, default: str) -> str | None:
+        value = explicit or _existing_default(default)
+        if value:
+            protected.append(Path(value).expanduser())
+        return value
+
+    scenario = args.scenario
+    if scenario in {"bulk-668", "cross-cell", "full-space"}:
+        select(args.feature_order, "feature_order")
+    if scenario in {"bulk-668", "cross-cell"}:
+        select(args.checkpoint, "closed_checkpoint")
+    elif scenario == "full-space":
+        select(args.checkpoint, "full_checkpoint")
+    elif scenario == "proteomics":
+        select(args.checkpoint, "proteomics_checkpoint")
+    elif scenario == "single-cell":
+        value = args.checkpoint or DEFAULT_SINGLE_CELL.get(args.cell_line)
+        if value and Path(value).is_file():
+            protected.append(Path(value))
+    if scenario == "cross-cell" and args.mode == "adapted":
+        select(args.adapter_checkpoint, "adapter_checkpoint")
+    if scenario in {"single-cell", "full-space", "proteomics"}:
+        select(
+            args.target_table,
+            "proteomics_target_table" if scenario == "proteomics" else "target_table",
+        )
+    outputs = [Path(args.output).expanduser()]
+    if scenario == "proteomics":
+        preprocessor = select(args.preprocessor, "proteomics_preprocessor")
+        if preprocessor is None:
+            select(args.reference_data, "proteomics_reference")
+            if args.write_preprocessor:
+                outputs.append(Path(args.write_preprocessor).expanduser())
+
+    def same_path(left: Path, right: Path) -> bool:
+        return left.resolve() == right.resolve() or (
+            left.exists() and right.exists() and left.samefile(right)
+        )
+
+    for index, output in enumerate(outputs):
+        for source in protected:
+            if same_path(output, source):
+                raise ValueError(
+                    "prediction output would overwrite an input or model asset: "
+                    f"{output} (input: {source})"
+                )
+        if any(same_path(output, earlier) for earlier in outputs[:index]):
+            raise ValueError(
+                "prediction and preprocessor outputs must use different paths"
+            )
 
 
 def _feature_order(args: argparse.Namespace) -> list[str] | None:
@@ -98,8 +181,17 @@ def _with_metadata(result: PredictionResult, **values: object) -> PredictionResu
 
 
 def _write_result(result: PredictionResult, args: argparse.Namespace) -> int:
+    report_step("Write ranked predictions")
     output = result.write(
         args.output, output_format=args.output_format, top_k=args.top_k
+    )
+    report_metrics(
+        {
+            "queries": len(result.query_ids),
+            "targets": len(result.targets),
+            "output": output.resolve(),
+        },
+        label="Summary",
     )
     print(
         json.dumps(
@@ -252,6 +344,7 @@ def command_cross_cell(args: argparse.Namespace) -> int:
         support_ids=support_ids,
         support_weights=_load_weights(args.support_weights, len(support_ids)),
         device=args.device,
+        batch_size=args.batch_size,
     )
     return _write_result(
         _with_metadata(result, cell_line=args.cell_line, drug=query_ids), args
@@ -290,6 +383,11 @@ def command_single_cell(args: argparse.Namespace) -> int:
 
 def command_proteomics(args: argparse.Namespace) -> int:
     frame = read_table(args.input)
+    if args.id_column in frame.columns and (
+        frame[args.id_column].isna().any()
+        or frame[args.id_column].astype(str).str.strip().eq("").any()
+    ):
+        raise ValueError("proteomics query identifiers must be nonempty")
     query_ids = (
         tuple(frame[args.id_column].astype(str))
         if args.id_column in frame.columns
@@ -379,7 +477,11 @@ def command_train(args: argparse.Namespace) -> int:
         ("proteomics", None),
     ]
     result_code = 0
-    for stage, cell_line in sequence:
+    for index, (stage, cell_line) in enumerate(sequence, 1):
+        report_step(
+            f"Training stage {index}/{len(sequence)}: {stage}"
+            + (f" ({cell_line})" if cell_line else "")
+        )
         output_dir = args.output_dir
         if output_dir and stage in {"single-cell", "proteomics"}:
             suffix = f"single_cell_{cell_line}" if cell_line else stage
@@ -393,6 +495,8 @@ def command_train(args: argparse.Namespace) -> int:
             dry_run=args.dry_run,
             check_only=args.check_only,
         )
+        if code == 0:
+            report_progress(index, len(sequence), label="Training stages")
         if code != 0:
             result_code = code
             if not args.check_only:
@@ -440,7 +544,34 @@ def _add_output_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--output", required=True)
     parser.add_argument("--output-format", choices=("long", "wide"), default="long")
     parser.add_argument(
-        "--top-k", type=int, default=0, help="0 writes the complete candidate space"
+        "--top-k",
+        type=_nonnegative_int,
+        default=0,
+        help="0 writes the complete candidate space",
+    )
+    _add_quiet_option(parser)
+
+
+def _positive_int(value: str) -> int:
+    number = int(value)
+    if number <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return number
+
+
+def _nonnegative_int(value: str) -> int:
+    number = int(value)
+    if number < 0:
+        raise argparse.ArgumentTypeError("must be zero or a positive integer")
+    return number
+
+
+def _add_quiet_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        default=argparse.SUPPRESS,
+        help="Hide progress on stderr; keep result JSON on stdout",
     )
 
 
@@ -450,13 +581,14 @@ def _add_bulk_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--feature-order")
     parser.add_argument("--feature-column")
     parser.add_argument("--cell-line")
-    parser.add_argument("--device", default="cpu")
-    parser.add_argument("--batch-size", type=int, default=256)
+    parser.add_argument("--device", default="auto", help="auto, cpu, cuda:N or mps")
+    parser.add_argument("--batch-size", type=_positive_int, default=256)
     _add_output_options(parser)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="metar", description=__doc__)
+    _add_quiet_option(parser)
     subparsers = parser.add_subparsers(dest="command", required=True)
     describe = subparsers.add_parser(
         "describe", help="List scientific scenarios and selected stages"
@@ -464,11 +596,21 @@ def build_parser() -> argparse.ArgumentParser:
     describe.set_defaults(handler=command_describe)
 
     doctor = subparsers.add_parser(
-        "doctor", help="Check required files and input dimensions without running a model"
+        "doctor",
+        help="Check required files and input dimensions without running a model",
     )
-    doctor.add_argument("--scenario", required=True, choices=(
-        "bulk-668", "full-space", "cross-cell", "single-cell", "proteomics", "consensus"
-    ))
+    doctor.add_argument(
+        "--scenario",
+        required=True,
+        choices=(
+            "bulk-668",
+            "full-space",
+            "cross-cell",
+            "single-cell",
+            "proteomics",
+            "consensus",
+        ),
+    )
     doctor.add_argument("--input", action="append")
     doctor.add_argument("--checkpoint")
     doctor.add_argument("--target-table")
@@ -485,6 +627,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--drug-column", default="query_id")
     doctor.add_argument("--cell-line-column", default="cell_line")
     doctor.add_argument("--min-cell-lines", type=int, default=2)
+    doctor.add_argument("--device", default="auto")
     doctor.set_defaults(handler=command_doctor)
 
     predict = subparsers.add_parser(
@@ -530,9 +673,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     single.add_argument("--checkpoint")
     single.add_argument("--target-table")
-    single.add_argument("--max-cells", type=int, default=300)
+    single.add_argument(
+        "--max-cells",
+        type=_nonnegative_int,
+        default=300,
+        help="Maximum cells per drug; 0 uses all cells",
+    )
     single.add_argument("--sampling-seed", type=int, default=20260327)
-    single.add_argument("--device", default="cpu")
+    single.add_argument("--device", default="auto")
     _add_output_options(single)
     single.set_defaults(handler=command_single_cell)
 
@@ -546,8 +694,8 @@ def build_parser() -> argparse.ArgumentParser:
     proteomics.add_argument("--preprocessor")
     proteomics.add_argument("--reference-data")
     proteomics.add_argument("--write-preprocessor")
-    proteomics.add_argument("--device", default="cpu")
-    proteomics.add_argument("--batch-size", type=int, default=64)
+    proteomics.add_argument("--device", default="auto")
+    proteomics.add_argument("--batch-size", type=_positive_int, default=64)
     _add_output_options(proteomics)
     proteomics.set_defaults(handler=command_proteomics)
 
@@ -562,7 +710,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     consensus.add_argument("--drug-column", default="query_id")
     consensus.add_argument("--cell-line-column", default="cell_line")
-    consensus.add_argument("--min-cell-lines", type=int, default=2)
+    consensus.add_argument("--min-cell-lines", type=_positive_int, default=2)
     consensus.add_argument("--target-order")
     consensus.add_argument("--target-order-column")
     _add_output_options(consensus)
@@ -586,7 +734,8 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
     )
     train.add_argument("--workspace", required=True)
-    train.add_argument("--device", default="cuda:0")
+    train.add_argument("--device", default="auto")
+    _add_quiet_option(train)
     train.add_argument("--output-dir")
     train.add_argument("--cell-line", choices=tuple(SINGLE_CELL_SELECTIONS))
     train.add_argument("--dry-run", action="store_true")
@@ -602,10 +751,58 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    old_progress = os.environ.get("METAR_PROGRESS")
     try:
-        return int(args.handler(args))
-    except (FileNotFoundError, RuntimeError, ValueError) as exc:
-        parser.exit(2, f"ERROR: {exc}\n")
+        if args.command == "predict":
+            _validate_prediction_output(args)
+        if getattr(args, "quiet", False):
+            os.environ["METAR_PROGRESS"] = "0"
+        preview = args.command in {"describe", "doctor"} or (
+            args.command == "train" and (args.dry_run or args.check_only)
+        )
+        if preview:
+            return int(args.handler(args))
+        requested_device = getattr(args, "device", None)
+        if requested_device is not None:
+            args.device = resolve_device(requested_device)
+        settings = {
+            "setting": getattr(args, "scenario", getattr(args, "stage", None)),
+            "mode": getattr(args, "mode", None),
+            "cell_line": getattr(args, "cell_line", None),
+            "device": getattr(args, "device", None),
+            "requested_device": requested_device,
+            "batch_size": getattr(args, "batch_size", None),
+            "input": getattr(args, "input", None),
+            "workspace": getattr(args, "workspace", None),
+            "output": getattr(args, "output", None),
+        }
+        with RunReporter(args.command.capitalize(), settings):
+            code = int(args.handler(args))
+            if code:
+                raise RuntimeError(
+                    f"{args.command} stopped with exit status {code}; see stage error above"
+                )
+            return code
+    except ImportError as exc:
+        parser.exit(
+            2,
+            f"ERROR: {exc}\nInstall optional dependencies in this Python environment: "
+            f'{os.sys.executable} -m pip install -e ".[training]"\n',
+        )
+    except (OSError, RuntimeError, ValueError) as exc:
+        detail = str(exc)
+        if "out of memory" in detail.lower():
+            detail += (
+                "\nFor prediction, lower --batch-size (where supported), or select "
+                "--device cpu and ensure sufficient RAM. For training, free device "
+                "memory or choose a device with enough memory; training budgets were not changed."
+            )
+        parser.exit(2, f"ERROR: {detail}\n")
+    finally:
+        if old_progress is None:
+            os.environ.pop("METAR_PROGRESS", None)
+        else:
+            os.environ["METAR_PROGRESS"] = old_progress
     return 2
 
 

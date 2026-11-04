@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import csv
+import errno
 import json
 import shutil
 import stat
+import sys
 from pathlib import Path
 
 MARKER = "training_workspace.json"
@@ -106,7 +108,7 @@ SOURCE_OVERLAY = {
     "training/modality_transfer/train_SW480/single_cell_model.py": "compat/home/lwn/claude/manuscript/write/claude_round259_crosscell_fullspace_round252query_then_sc_proteomics_20260522/train_SW480/run_sc_label_bag_calibration_multicell_base.py",
     "training/bulk_data/prepare_inductive_bulk.py": "compat/home/lwn/claude/manuscript/write/bulk_sharedsample_indunseenlabel_20260330_h07/scripts/train_bulk_sharedsample_indunseenlabel_v1_20260330.py",
     "training/bulk_data/bulk_dual_branch.py": "compat/home/lwn/claude/manuscript/write/bulk_sharedsample_indunseenlabel_20260330_h07/scripts/train_bulk_dualbranch_v2_20260328.py",
-    "training/support_query_shift/fixed_cell_panel.json": "compat/home/lwn/claude/manuscript/write/claude_round215_direct_query_shift_adapter_20260517/round215_fixed_cell_panel.json"
+    "training/support_query_shift/fixed_cell_panel.json": "compat/home/lwn/claude/manuscript/write/claude_round215_direct_query_shift_adapter_20260517/round215_fixed_cell_panel.json",
 }
 
 
@@ -226,12 +228,24 @@ def _copy(
         shutil.copy2(source, destination)
 
 
-def _link(source: Path, destination: Path, *, copy_inputs: bool = False) -> None:
+def _link(source: Path, destination: Path, *, copy_inputs: bool = False) -> bool:
+    """Materialize an input, returning whether a link restriction required a copy."""
     destination.parent.mkdir(parents=True, exist_ok=True)
     if copy_inputs:
         shutil.copy2(source, destination)
     else:
-        destination.symlink_to(source.resolve())
+        try:
+            destination.symlink_to(source.resolve())
+        except OSError as exc:
+            if getattr(exc, "winerror", None) != 1314 and exc.errno not in {
+                errno.EPERM,
+                errno.EACCES,
+                errno.ENOTSUP,
+            }:
+                raise
+            shutil.copy2(source, destination)
+            return True
+    return False
 
 
 def prepare_training_workspace(
@@ -319,6 +333,20 @@ def prepare_training_workspace(
     if missing:
         raise FileNotFoundError("missing training inputs:\n" + "\n".join(missing))
     root.mkdir(parents=True)
+    used_copy_fallback = False
+
+    def materialize_input(source: Path, target: Path) -> None:
+        nonlocal used_copy_fallback
+        fallback = _link(source, target, copy_inputs=copy_inputs)
+        if fallback and not used_copy_fallback:
+            print(
+                "MeTar: input symlinks are unavailable; copying affected inputs "
+                "into the training workspace. Use --copy-inputs to copy all inputs.",
+                file=sys.stderr,
+                flush=True,
+            )
+            used_copy_fallback = True
+
     for relative, target in overlay.items():
         _copy(code / relative, root / target, root, relocate=True)
         if target.endswith("run_round210_dim256_checkpoint_sweep.py"):
@@ -361,13 +389,13 @@ def prepare_training_workspace(
     for relative in metadata:
         _copy(artifacts / relative, root / relative, root, relocate=True)
     for relative in external:
-        _link(artifacts / relative, root / relative, copy_inputs=copy_inputs)
+        materialize_input(artifacts / relative, root / relative)
     cache = "data/processed/fullspace/h07_prepared_data.pt"
     if (
         stage not in {"gene-prior", "single-cell", "proteomics"}
         and (artifacts / cache).is_file()
     ):
-        _link(artifacts / cache, root / cache, copy_inputs=copy_inputs)
+        materialize_input(artifacts / cache, root / cache)
     for relative, target in warm_start.items():
         _copy(artifacts / relative, root / target, root)
     if TARGET_TABLE in warm_start:
@@ -389,7 +417,7 @@ def prepare_training_workspace(
             aliases[relative] = f"compat/home/lwn/claude/sc/data/{Path(relative).name}"
     for relative, target in aliases.items():
         if (root / relative).is_file():
-            _link(root / relative, root / target, copy_inputs=copy_inputs)
+            materialize_input(root / relative, root / target)
     for round_name in (
         "bulk_sharedsample_indunseenlabel_20260330_h07_w060_u8e4_med",
         "bulk_dualbranch_20260328_b01_warm_seen_joint",
@@ -400,7 +428,8 @@ def prepare_training_workspace(
             _copy(protocol, target, root)
     if METADATA_INPUTS[0] in metadata:
         (
-            root / WRITE_ROOT
+            root
+            / WRITE_ROOT
             / "bulk_sharedsample_indunseenlabel_20260330_h07/derived_tables"
         ).mkdir(parents=True, exist_ok=True)
     if needs_gene_order:
@@ -416,6 +445,8 @@ def prepare_training_workspace(
             raise ValueError("proteomics gene-order source must have unique gene names")
         gene_order.write_text("gene\n" + "\n".join(names) + "\n", encoding="utf-8")
     report["status"] = "prepared"
+    if used_copy_fallback:
+        report["input_mode"] = "copy_fallback"
     report["schema_version"] = 2
     (root / MARKER).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return report

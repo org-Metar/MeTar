@@ -40,10 +40,9 @@ If a cache was not available, create it in the new workspace before training:
 python scripts/prepare_bulk_data.py --package ../metar-training-fullspace --device cpu
 ```
 
-The cache builder creates a temporary file symlink even if workspace
-preparation used `--copy-inputs`. On Windows it still needs symlink
-permission; use Linux/WSL or an already prepared compatible cache if that
-permission is unavailable.
+The cache builder uses a temporary graph link, falling back to a temporary
+copy when symlinks are unavailable. Workspace preparation also copies affected
+inputs when link permissions are unavailable; see [training setup](../training.md).
 
 Then train the branch:
 

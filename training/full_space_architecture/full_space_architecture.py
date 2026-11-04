@@ -21,6 +21,8 @@ import torch.nn.functional as F
 from sklearn.metrics import average_precision_score, ndcg_score, roc_auc_score
 from torch import nn
 
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
+
 
 ROUND_ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROUND_ROOT / "source_data"
@@ -170,6 +172,7 @@ def import_h07_wrapper():
 
 
 def load_h07_data() -> tuple[object, dict, dict]:
+    report_step(f"Loading h07 helper and prepared data cache: {H07_CACHE}")
     wrapper = import_h07_wrapper()
     cached = torch.load(H07_CACHE, map_location="cpu", weights_only=False)
     return wrapper, cached["data"], cached["protocol"]
@@ -419,6 +422,7 @@ def predict_seen(model: ScratchMLPTargetModel, x: np.ndarray, device: torch.devi
     for start in range(0, len(x), batch_size):
         xb = torch.tensor(x[start : start + batch_size], dtype=torch.float32, device=device)
         out.append(model.logits_seen(xb).detach().cpu())
+        report_progress(min(start + batch_size, len(x)), len(x), label="full-space seen prediction profiles")
     return torch.cat(out, dim=0).numpy()
 
 
@@ -464,6 +468,7 @@ def evaluate_holdout_top5(
                         "n_true_targets": int(len(true_idx)),
                     }
                 )
+        report_progress(min(start + batch_size, len(bundle["x"])), len(bundle["x"]), label=f"full-space holdout top5pct exclude_seen={exclude_seen} profiles")
     return (
         {
             "top5pct_success": successes / len(bundle["x"]) if len(bundle["x"]) else 0.0,
@@ -496,13 +501,18 @@ def evaluate_variant(
 ) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     rows: list[dict[str, Any]] = []
     for split_name in ["val", "test"]:
+        report_step(f"Evaluating full-space {run_id}: {split_name}")
         scores = predict_seen(model, splits[split_name]["x"], device, batch_size=256)
         metrics = compute_metrics(scores, splits[split_name]["y"])
+        report_metrics(metrics, label=f"full-space {run_id} {split_name}")
         rows.append({"variant": run_id, "split": split_name, "evaluation_family": "seen_668", "evaluation_unit": "profile", **metrics, "best_epoch": best_epoch})
     per_rows = []
     for split_name in ["holdout_val", "holdout_test"]:
+        report_step(f"Evaluating full-space {run_id}: {split_name}")
         metrics, per = evaluate_holdout_top5(model, holdouts[split_name], device, batch_size=256, exclude_seen=False, return_rows=(split_name == "holdout_test"))
         metrics_rm, _ = evaluate_holdout_top5(model, holdouts[split_name], device, batch_size=256, exclude_seen=True, return_rows=False)
+        report_metrics(metrics, label=f"full-space {run_id} {split_name}")
+        report_metrics(metrics_rm, label=f"full-space {run_id} {split_name} remove_seen")
         rows.append({"variant": run_id, "split": split_name, "evaluation_family": "holdout_fullspace_top5", "evaluation_unit": "profile", **metrics, "best_epoch": best_epoch})
         rows.append({"variant": run_id, "split": split_name, "evaluation_family": "holdout_fullspace_top5_remove_seen", "evaluation_unit": "profile", **metrics_rm, "best_epoch": best_epoch})
         if per is not None:
@@ -548,6 +558,7 @@ def train_variant(
     best = None
     best_state = None
     best_epoch = 0
+    report_step(f"Training full-space {variant}; device={device} max_epochs={max_epochs} batch_size={batch_size} cfg={json.dumps(cfg, sort_keys=True)}")
 
     for epoch in range(1, max_epochs + 1):
         model.train()
@@ -565,7 +576,9 @@ def train_variant(
             torch.nn.utils.clip_grad_norm_(trainable_params, 2.0)
             opt.step()
             losses.append(float(loss.detach().cpu()))
+            report_progress(min(start + batch_size, n_train), n_train, label=f"full-space {variant} epoch {epoch} profiles", metrics={"loss": losses[-1]})
 
+        report_step(f"Validating full-space {variant} epoch {epoch}")
         seen_scores = predict_seen(model, splits["val"]["x"], device, batch_size=256)
         seen = compute_metrics(seen_scores, splits["val"]["y"])
         holdout, _ = evaluate_holdout_top5(model, holdouts["holdout_val"], device, batch_size=256, exclude_seen=False)
@@ -588,6 +601,14 @@ def train_variant(
             "target_tower_train": bool(cfg.get("target_tower_train", False)),
         }
         history.append(rec)
+        report_progress(epoch, max_epochs, label=f"full-space {variant} epochs")
+        report_metrics(
+            {key: rec[key] for key in (
+                "train_loss", "seen_Hit@10", "seen_MeanAP",
+                "holdout_top5pct", "holdout_top5pct_remove_seen",
+            )},
+            label=f"full-space {variant} epoch {epoch}",
+        )
         if better_candidate(rec, best):
             best = rec
             best_epoch = epoch
@@ -600,6 +621,7 @@ def train_variant(
 
     if best_state is not None:
         model.load_state_dict(best_state, strict=True)
+    report_step(f"Evaluating selected full-space {variant}; best_epoch={best_epoch}")
     metrics, per = evaluate_variant(variant, model, splits, holdouts, device, best_epoch)
     ckpt_dir = CHECKPOINTS / variant
     ckpt_dir.mkdir(parents=True, exist_ok=True)
@@ -663,15 +685,17 @@ This round does not use the A01 sample encoder. The sample side is a newly initi
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--runs", type=str, default=",".join(VARIANTS.keys()))
+    parser.add_argument("--device", default="auto")
     parser.add_argument("--smoke", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    device = torch.device(resolve_device(args.device))
+    report_step(f"Preparing full-space architecture training; device={device} runs={args.runs} smoke={args.smoke}")
     ensure_dirs()
     set_seed(SEED)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log(f"device={device}")
     wrapper, data, protocol = load_h07_data()
     splits = {name: subset_split_by_cell(data[name], CELL_LINE) for name in ["inner_train", "val", "test"]}
@@ -704,6 +728,7 @@ def main() -> None:
             per["target_mode"] = cfg["target_mode"]
             per_all.append(per)
 
+    report_step("Writing full-space architecture histories, metrics and audit records")
     metrics_df = pd.concat(metrics_all, ignore_index=True)
     history_df = pd.concat(history_all, ignore_index=True)
     metrics_df.to_csv(SOURCE / "metric_summary.tsv", sep="\t", index=False)

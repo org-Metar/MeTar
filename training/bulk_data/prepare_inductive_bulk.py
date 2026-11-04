@@ -14,6 +14,8 @@ from pathlib import Path
 from typing import Dict, Iterable, Tuple
 
 import pandas as pd
+
+from metar.runtime import report_metrics, report_progress, report_step, resolve_device
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -309,6 +311,7 @@ def snapshot_state_dict_to_cpu(model: nn.Module) -> Dict[str, torch.Tensor]:
 
 
 def train_shared_adapter_variant(args, data: dict, device: torch.device) -> dict:
+    report_step('Preparing shared bulk adapter training')
     bulk_base.set_seed(args.seed)
     n_genes = len(data["gene_list"])
     train_gene_global_idx = data["train_gene_global_idx"]
@@ -412,6 +415,8 @@ def train_shared_adapter_variant(args, data: dict, device: torch.device) -> dict
     history_rows = []
     train_start = time.time()
 
+    report_progress(0, args.n_epochs, label='shared adapter variant epochs')
+    report_metrics(vars(args), label="Training settings")
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         meta_seen_total = 0.0
@@ -421,6 +426,7 @@ def train_shared_adapter_variant(args, data: dict, device: torch.device) -> dict
         epoch_start = time.time()
 
         for _ in range(args.steps_per_epoch):
+            report_progress(_, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
             sampled_cells = bulk_base.random.sample(train_cells, min(args.meta_batch, len(train_cells)))
             optimizer.zero_grad()
 
@@ -488,6 +494,7 @@ def train_shared_adapter_variant(args, data: dict, device: torch.device) -> dict
             meta_unseen_total += batch_unseen_loss.item()
             geom_loss_total += batch_geom_loss.item()
             valid_steps += 1
+        report_progress(args.steps_per_epoch, args.steps_per_epoch, label=f"Epoch {epoch} training episodes")
 
         scheduler.step()
         avg_seen_loss = meta_seen_total / max(valid_steps, 1)
@@ -523,6 +530,14 @@ def train_shared_adapter_variant(args, data: dict, device: torch.device) -> dict
                     "unseen_score": unseen_score,
                     "epoch_time_s": time.time() - epoch_start,
                 }
+            )
+            report_progress(epoch, args.n_epochs, label='shared adapter variant epochs')
+            report_metrics(
+                {key: history_rows[-1][key] for key in (
+                    "meta_seen_loss", "meta_unseen_loss", "val_seen_hit10",
+                    "val_seen_map", "val_holdout_top5pct",
+                )},
+                label=f"Epoch {epoch}/{args.n_epochs}",
             )
             logger.info(
                 "Epoch %02d/%02d | seen_loss=%.4f | unseen_loss=%.4f | geom=%.4f | seen_hit10=%.4f | seen_auc=%.4f | unseen_proxy_hit10=%.4f | holdout=%.4f | seen_score=%.4f | unseen_score=%.4f",
@@ -719,7 +734,7 @@ def main():
     args = parse_args()
     configure_logging(args.variant)
     bulk_base.set_seed(args.seed)
-    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    device = torch.device(resolve_device(args.device))
 
     manifest_path = Path(args.manifest_path)
     manifest_copy = copy_manifest(manifest_path)
