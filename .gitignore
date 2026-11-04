@@ -81,3 +81,19 @@ data/*
 # Small documentation graphics displayed in the README.
 !docs/images/*.png
 !docs/images/*.svg
+
+# Small public-data examples for pretrained prediction.
+!examples/inputs/bulk_query.npz
+!examples/inputs/fullspace_query.npz
+!examples/inputs/single_cell_a549.npz
+!examples/inputs/proteomics.tsv
+!examples/inputs/cross_cell/hela/query.npz
+!examples/inputs/cross_cell/hela/support.npz
+!examples/inputs/cross_cell/hela/support_labels.tsv
+!examples/inputs/cross_cell/hela/support_weights.npy
+!examples/inputs/cross_cell/hcc515/query.npz
+!examples/inputs/cross_cell/hcc515/support.npz
+!examples/inputs/cross_cell/hcc515/support_labels.tsv
+!examples/inputs/cross_cell/hcc515/support_weights.npy
+!examples/inputs/consensus/hela_scores.tsv
+!examples/inputs/consensus/hcc515_scores.tsv

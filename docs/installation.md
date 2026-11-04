@@ -113,7 +113,9 @@ uv pip install -e ".[plotting]"
 For the Bash-based archived evaluation and training workspace scripts, use Linux
 or WSL. The prepared-query prediction commands use the Python CLI.
 
-Continue with the [PDF-3 quick start](quickstart.md) for a complete runnable
-example, or [models and data setup](data.md) for other workflows.
+Continue with [pretrained prediction](../README.md#prediction-workflows) to run
+the small examples included in the repository. These examples need only the
+model archive; [models and data setup](data.md) explains the download and
+artifact path. Each prediction guide explains how to substitute your own data.
 [Common problems](troubleshooting.md) and
 [reproduction limits](reproduction.md) cover preparation and environment issues.

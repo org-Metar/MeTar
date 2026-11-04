@@ -332,17 +332,22 @@ def stage_inputs(stage_name: str, command: list[str]) -> tuple[str, ...]:
     if stage_name == "single-cell":
         cell = command[command.index("--cell-line") + 1]
         name = {"A549": "a549", "SW480": "sw480", "NCI-H460": "nci_h460"}[cell]
+        directory = SINGLE_CELL_SELECTIONS[cell][2]
         return (
             "data/processed/fullspace/round259_target_embedding.csv",
             "data/processed/tahoe/sc_protocol_lock_v3_20260326.json",
             "data/processed/tahoe/tahoe_dti.csv",
             f"data/processed/tahoe/tahoe_{name}.h5ad",
+            f"{ROUND259}/{directory}/run_round260_sc_round259_embedding.py",
+            f"{ROUND259}/{directory}/run_sc_label_bag_calibration_multicell_base.py",
+            f"{ROUND259}/source_data/round259_target_embedding.csv",
         )
     return (
         "data/processed/proteomics/proteomicsdb_data.csv",
         "data/processed/proteomics/gene_order.tsv",
         "data/processed/fullspace/round259_target_embedding.csv",
         "code/original_runs/r259_261/proteomics_results/round261_proteomics_round259_embedding_method_lock.json",
+        f"{ROUND259}/scripts/run_round261_proteomics_round259_embedding.py",
     )
 
 

@@ -1,8 +1,10 @@
-# Quick start: rank targets for the included PDF-3 query
+# Reproduce the PDF-3 target prediction
 
-This example takes one prepared PDF-3 response from the release data and ranks
+This paper-reproduction example takes one prepared PDF-3 response from the release data and ranks
 668 candidate targets with the pretrained bulk model. It needs no separately
-downloaded LINCS or Tahoe dataset and does not train a model.
+downloaded LINCS or Tahoe dataset and does not train a model. For a first
+prediction with a small computational example or your own data, start with
+[pretrained prediction](../README.md#prediction-workflows).
 
 ## 1. Install and open the repository
 

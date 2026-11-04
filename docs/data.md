@@ -13,7 +13,16 @@ List the assets without installing a download tool or signing in:
 python scripts/download_data.py --list
 ```
 
-For the prepared PDF-3 example, download these two archives:
+For the small prediction examples in [`examples/`](../examples/README.md),
+download the model archive:
+
+```bash
+python scripts/download_data.py --archive models_and_representations.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
+```
+
+These examples contain prepared computational inputs and do not require the
+complete training datasets. For the [PDF-3 reproduction](quickstart.md), also
+download the reference-data archive:
 
 ```bash
 python scripts/download_data.py --archive models_and_representations.tar.gz --archive result_data.tar.gz --download --directory ../metar-downloads --package ../metar_artifacts
@@ -54,7 +63,9 @@ For an already prepared query, the model archive is usually sufficient. Bulk
 query tables also need an explicit training feature order or the original
 landmark schema. Full manuscript evaluation and scratch training need the
 prepared public inputs below; downloading pretrained weights alone does not
-prepare these datasets.
+prepare these datasets. To train only a selected component, use the
+[training workspace options](training.md) to check that component's inputs
+instead of collecting every dataset first.
 
 ## Set the artifact root
 
