@@ -14,6 +14,7 @@
   <a href="docs/installation.md"><img src="https://img.shields.io/badge/Python-3.11%20recommended-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.11 recommended"></a>
   <a href="https://github.com/org-Metar/MeTar/releases/tag/artifacts-20261102"><img src="https://img.shields.io/badge/models%20%26%20data-download-287F79?style=flat-square" alt="Download pretrained models and data"></a>
   <a href="#citation"><img src="https://img.shields.io/badge/paper-Submitted-687B89?style=flat-square" alt="Paper submitted"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-287F79?style=flat-square" alt="License Apache 2.0"></a>
 </p>
 
 <p align="center">
@@ -37,6 +38,7 @@
 - [Tutorials and documentation](#tutorials-and-documentation)
 - [Repository structure](#repository-structure)
 - [Citation](#citation)
+- [License](#license)
 
 ---
 
@@ -441,14 +443,22 @@ to export the citation.
 
 ---
 
-### Questions and licensing
+### Questions
 
 For usage questions or reproducible problems, open a
 [GitHub issue](https://github.com/org-Metar/MeTar/issues) with the command,
 package versions and error message. Do not include credentials or private data.
 
-Third-party licenses and provenance are retained in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). No project-wide MeTar license
-has been approved for this snapshot.
+<a id="license"></a>
+
+## 📄 License
+
+MeTar's original source code is licensed under the
+[Apache License 2.0](LICENSE).
+
+Third-party code retains its original licenses and notices; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The source-code license does
+not change the terms of external datasets, third-party model weights or
+manuscript figures, which remain subject to their respective terms.
 
 <p align="right"><a href="#contents">Back to contents ↑</a></p>

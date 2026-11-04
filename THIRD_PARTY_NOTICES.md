@@ -1,5 +1,10 @@
 # Third-party notices
 
+MeTar's original source code is licensed under the Apache License 2.0 in the
+root `LICENSE` file. The third-party code below retains its existing license
+and attribution notices. The source-code license does not replace the terms
+governing external datasets, third-party model weights or manuscript figures.
+
 ## PertKGE
 
 `comparators/pertkge/code/` is a source-only snapshot of the PertKGE

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,6 +8,12 @@ version = "0.2.0"
 description = "Article-aligned prediction and training interfaces for MeTar"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = [
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "comparators/*/code/LICENSE",
+]
 dependencies = [
     "numpy>=1.24",
     "pandas>=2.0",
