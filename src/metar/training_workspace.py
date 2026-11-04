@@ -1,4 +1,4 @@
-"""Prepare an isolated training tree without copying selected model weights."""
+"""Prepare an isolated scratch or stage-specific MeTar training workspace."""
 
 from __future__ import annotations
 
@@ -43,6 +43,22 @@ METADATA_INPUTS = (
     "code/original_runs/r259_261/proteomics_results/round261_proteomics_round259_embedding_method_lock.json",
 )
 GENE_ORDER_SOURCE = "data/processed/fullspace/round259_target_embedding_aligned_to_proteomics_gene_order.csv"
+TRAINING_STAGES = (
+    "all",
+    "gene-prior",
+    "closed-bulk",
+    "support-initializer",
+    "cross-cell-adapter",
+    "full-space",
+    "single-cell",
+    "proteomics",
+)
+SINGLE_CELL_FILES = {
+    "A549": "a549",
+    "SW480": "sw480",
+    "NCI-H460": "nci_h460",
+}
+TARGET_TABLE = "data/processed/fullspace/round259_target_embedding.csv"
 
 
 def assert_private_output(root: Path, path: Path) -> None:
@@ -94,9 +110,93 @@ SOURCE_OVERLAY = {
 }
 
 
-def code_overlay(code_root: Path) -> dict[str, str]:
+def code_overlay(
+    code_root: Path, stage: str = "all", cell_line: str | None = None
+) -> dict[str, str]:
     """Map canonical source names to the frozen scientific execution layout."""
-    return dict(SOURCE_OVERLAY)
+    if stage == "all":
+        return dict(SOURCE_OVERLAY)
+    if stage == "single-cell":
+        directory = f"training/modality_transfer/train_{cell_line.replace('-', '_')}/"
+        return {
+            key: value
+            for key, value in SOURCE_OVERLAY.items()
+            if key.startswith(directory)
+        }
+    if stage == "proteomics":
+        names = {"train_proteomics.py", "align_proteomics_targets.py"}
+        return {
+            key: value
+            for key, value in SOURCE_OVERLAY.items()
+            if Path(key).name in names
+        }
+    if stage == "gene-prior":
+        groups = {"structural_graph_encoder", "gene_prior", "bulk_readout"}
+    elif stage == "full-space":
+        groups = {"full_space_architecture", "bulk_data"}
+    else:
+        groups = {
+            "structural_graph_encoder",
+            "bulk_readout",
+            "support_query_shift",
+            "leakage_safe_support",
+            "closed_bulk",
+            "bulk_data",
+        }
+        if stage in {"support-initializer", "cross-cell-adapter"}:
+            groups.add("support_initializer")
+        if stage == "cross-cell-adapter":
+            groups.update({"episodic_meta_learning", "cross_cell_adapter"})
+    return {
+        key: value
+        for key, value in SOURCE_OVERLAY.items()
+        if key.split("/")[1] in groups
+        or (stage == "full-space" and key.endswith("scripts/train_full_space.py"))
+    }
+
+
+def workspace_inputs(
+    stage: str, cell_line: str | None
+) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Select assay inputs; unrelated assay downloads are not prerequisites."""
+    if stage == "all":
+        return EXTERNAL_INPUTS, METADATA_INPUTS
+    if stage == "gene-prior":
+        return EXTERNAL_INPUTS[:3], ()
+    if stage == "single-cell":
+        name = SINGLE_CELL_FILES[cell_line]
+        return (
+            f"data/processed/tahoe/tahoe_{name}.h5ad",
+            "data/processed/tahoe/tahoe_dti.csv",
+        ), (METADATA_INPUTS[2],)
+    if stage == "proteomics":
+        return (EXTERNAL_INPUTS[-1],), (METADATA_INPUTS[-1],)
+    return EXTERNAL_INPUTS[3:6], METADATA_INPUTS[:2]
+
+
+def pretrained_inputs(stage: str) -> dict[str, str]:
+    """Map read-only upstream release files to private runtime destinations."""
+    # Imported lazily because training imports this module's layout constants.
+    from .training import LOCKED_OUTPUTS
+
+    upstream = {
+        "closed-bulk": ("gene-prior",),
+        "support-initializer": ("gene-prior", "closed-bulk"),
+        "cross-cell-adapter": ("gene-prior", "closed-bulk", "support-initializer"),
+        "full-space": ("closed-bulk",),
+    }
+    names = {
+        "gene-prior": "round210_process_only_epoch030.pth",
+        "closed-bulk": "round246_whole_model_checkpoint.pth",
+        "support-initializer": "round247_adapter_init.pth",
+    }
+    result = {
+        f"checkpoints/selected/{names[name]}": LOCKED_OUTPUTS[name]
+        for name in upstream.get(stage, ())
+    }
+    if stage in {"single-cell", "proteomics"}:
+        result[TARGET_TABLE] = TARGET_TABLE
+    return result
 
 
 def _relocate(text: str, root: Path) -> str:
@@ -141,13 +241,29 @@ def prepare_training_workspace(
     *,
     check_only: bool = False,
     copy_inputs: bool = False,
+    stage: str = "all",
+    reuse_pretrained: bool = False,
+    cell_line: str | None = None,
 ) -> dict[str, object]:
     """Inspect prerequisites, then create a fresh tree with private mutable outputs.
 
     Large inputs are symlinked and are used only for reading. Sources and mutable
     metadata are ordinary copies. A pre-existing destination is never modified.
-    The archived aligned embedding supplies gene names only, never model values.
+    Scratch mode copies no selected model values. Stage-specific reuse copies
+    only upstream weights or vectors, never that stage's selected output.
     """
+    if stage not in TRAINING_STAGES:
+        raise ValueError(f"unknown training stage: {stage}")
+    if stage == "single-cell" and cell_line not in SINGLE_CELL_FILES:
+        raise ValueError(
+            "single-cell preparation requires --cell-line A549, SW480 or NCI-H460"
+        )
+    if cell_line is not None and stage != "single-cell":
+        raise ValueError("--cell-line is only used with --stage single-cell")
+    if reuse_pretrained and stage in {"all", "gene-prior"}:
+        raise ValueError(
+            "--reuse-pretrained requires a stage with upstream pretrained inputs"
+        )
     code = Path(code_root).resolve()
     artifacts = Path(artifact_root).resolve()
     candidate = Path(destination).absolute()
@@ -157,14 +273,28 @@ def prepare_training_workspace(
     for source_root in (code, artifacts):
         if root.is_relative_to(source_root) or source_root.is_relative_to(root):
             raise ValueError("training destination and source roots must be separate")
-    overlay = code_overlay(code)
+    overlay = code_overlay(code, stage, cell_line)
+    external, metadata = workspace_inputs(stage, cell_line)
+    warm_start = pretrained_inputs(stage) if reuse_pretrained else {}
+    needs_gene_order = stage in {"all", "proteomics"}
+    extra_sources: dict[str, str] = {}
+    if reuse_pretrained and stage == "support-initializer":
+        extra_sources["training/closed_bulk/selected_configuration.json"] = (
+            f"{WRITE_ROOT}/{ROUND_NAMES['r246']}/source_data/selected_r246_joint_lm0p5_sc0p15_mn2p5.json"
+        )
+    if stage == "full-space":
+        extra_sources["training/cross_cell_adapter/cell_splits.json"] = (
+            f"{WRITE_ROOT}/{ROUND_NAMES['r252']}/source_data/cell_splits.json"
+        )
     required = [(code, path) for path in overlay]
-    required.extend(
-        (artifacts, path)
-        for path in (*EXTERNAL_INPUTS, *METADATA_INPUTS, GENE_ORDER_SOURCE)
-    )
+    required.extend((code, path) for path in extra_sources)
+    required.extend((artifacts, path) for path in (*external, *metadata, *warm_start))
+    if needs_gene_order:
+        required.append((artifacts, GENE_ORDER_SOURCE))
     missing = [
-        str(base / path) for base, path in required if not (base / path).is_file()
+        (base / path).as_posix()
+        for base, path in required
+        if not (base / path).is_file()
     ]
     report: dict[str, object] = {
         "status": "missing_inputs" if missing else "inputs_present",
@@ -172,7 +302,12 @@ def prepare_training_workspace(
         "code_root": str(code),
         "artifact_root": str(artifacts),
         "missing_inputs": missing,
-        "selected_checkpoints_copied": False,
+        "stage": stage,
+        "cell_line": cell_line,
+        "reuse_pretrained": reuse_pretrained,
+        "selected_checkpoints_copied": any(key.endswith(".pth") for key in warm_start),
+        "reused_inputs": list(warm_start),
+        "prepared_stages": list(TRAINING_STAGES[1:]) if stage == "all" else [stage],
         "input_mode": "copy" if copy_inputs else "symlink",
         "cache_present": (
             artifacts / "data/processed/fullspace/h07_prepared_data.pt"
@@ -221,13 +356,24 @@ def prepare_training_workspace(
         if relative.startswith("training/bulk_data/"):
             legacy = "code/remote_dependencies/h07/" + Path(target).name
             _copy(code / relative, root / legacy, root, relocate=True)
-    for relative in METADATA_INPUTS:
+    for relative, target in extra_sources.items():
+        _copy(code / relative, root / target, root, relocate=True)
+    for relative in metadata:
         _copy(artifacts / relative, root / relative, root, relocate=True)
-    for relative in EXTERNAL_INPUTS:
+    for relative in external:
         _link(artifacts / relative, root / relative, copy_inputs=copy_inputs)
     cache = "data/processed/fullspace/h07_prepared_data.pt"
-    if (artifacts / cache).is_file():
+    if (
+        stage not in {"gene-prior", "single-cell", "proteomics"}
+        and (artifacts / cache).is_file()
+    ):
         _link(artifacts / cache, root / cache, copy_inputs=copy_inputs)
+    for relative, target in warm_start.items():
+        _copy(artifacts / relative, root / target, root)
+    if TARGET_TABLE in warm_start:
+        # The selected single-cell source reads the table in its own source_data.
+        target = f"{WRITE_ROOT}/{ROUND_NAMES['r259_261']}/source_data/round259_target_embedding.csv"
+        _copy(artifacts / TARGET_TABLE, root / target, root)
     aliases = {
         "data/processed/closed/r210/pc3_landmark_response_978.tsv.gz": f"{WRITE_ROOT}/claude_round93_landmark_target_relation_bridge_pc3_20260507/source_data/pc3_landmark_response_978.tsv.gz",
         "data/processed/closed/r210/pc3_metar_drugcell_scores_668.tsv.gz": f"{WRITE_ROOT}/claude_round92_metar_fixed_graph_prior_pc3_20260507/source_data/pc3_metar_drugcell_scores_668.tsv.gz",
@@ -242,30 +388,34 @@ def prepare_training_workspace(
         if "/tahoe/" in relative:
             aliases[relative] = f"compat/home/lwn/claude/sc/data/{Path(relative).name}"
     for relative, target in aliases.items():
-        _link(root / relative, root / target, copy_inputs=copy_inputs)
+        if (root / relative).is_file():
+            _link(root / relative, root / target, copy_inputs=copy_inputs)
     for round_name in (
         "bulk_sharedsample_indunseenlabel_20260330_h07_w060_u8e4_med",
         "bulk_dualbranch_20260328_b01_warm_seen_joint",
     ):
         target = root / WRITE_ROOT / round_name / "manifests/bulk_protocol_lock_v2.json"
-        _copy(root / "data/processed/lincs/bulk_protocol_lock_v2.json", target, root)
-    (
-        root
-        / WRITE_ROOT
-        / "bulk_sharedsample_indunseenlabel_20260330_h07/derived_tables"
-    ).mkdir(parents=True, exist_ok=True)
-    gene_order = root / "data/processed/proteomics/gene_order.tsv"
-    gene_order.parent.mkdir(parents=True, exist_ok=True)
-    with (artifacts / GENE_ORDER_SOURCE).open(
-        encoding="utf-8-sig", newline=""
-    ) as handle:
-        reader = csv.reader(handle)
-        next(reader)
-        names = [row[0] for row in reader]
-    if not names or len(names) != len(set(names)):
-        raise ValueError("proteomics gene-order source must have unique gene names")
-    gene_order.write_text("gene\n" + "\n".join(names) + "\n", encoding="utf-8")
+        protocol = root / "data/processed/lincs/bulk_protocol_lock_v2.json"
+        if protocol.is_file():
+            _copy(protocol, target, root)
+    if METADATA_INPUTS[0] in metadata:
+        (
+            root / WRITE_ROOT
+            / "bulk_sharedsample_indunseenlabel_20260330_h07/derived_tables"
+        ).mkdir(parents=True, exist_ok=True)
+    if needs_gene_order:
+        gene_order = root / "data/processed/proteomics/gene_order.tsv"
+        gene_order.parent.mkdir(parents=True, exist_ok=True)
+        with (artifacts / GENE_ORDER_SOURCE).open(
+            encoding="utf-8-sig", newline=""
+        ) as handle:
+            reader = csv.reader(handle)
+            next(reader)
+            names = [row[0] for row in reader]
+        if not names or len(names) != len(set(names)):
+            raise ValueError("proteomics gene-order source must have unique gene names")
+        gene_order.write_text("gene\n" + "\n".join(names) + "\n", encoding="utf-8")
     report["status"] = "prepared"
-    report["schema_version"] = 1
+    report["schema_version"] = 2
     (root / MARKER).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return report
