@@ -660,7 +660,7 @@ metric_summary = pd.DataFrame(
 )
 metric_summary.to_csv(METRIC_SUMMARY_PATH, sep="\t", index=False)
 
-leakage_audit = f"""# Round261 Proteomics Leakage and Denominator Audit
+leakage_audit = f"""# Proteomics leakage and denominator audit
 
 - Target embedding source: Round259 exported cross-cell full-space target embeddings aligned to the locked proteomics gene order.
 - Target embedding shape: {result["gene_universe_size"]} x {d_feat}.

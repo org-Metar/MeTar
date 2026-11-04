@@ -100,7 +100,7 @@ def method_handles() -> list[Line2D]:
 
 def save_panel(fig: plt.Figure, label: str, width_mm: float, height_mm: float) -> Path:
     path = PANELS / f"Figure3{label}.pdf"
-    fig.savefig(path, format="pdf", facecolor="white", metadata={"Title": f"Figure3 panel {label} v3 proof"})
+    fig.savefig(path, format="pdf", facecolor="white", metadata={"Title": f"Figure 3, panel {label}"})
     plt.close(fig)
     with pymupdf.open(path) as doc:
         require(len(doc) == 1, f"Panel {label} is not one page")

@@ -43,5 +43,5 @@
   "missed_partial_rank_aware_matched_gene_null_p_one_sided": 0.002,
   "rank_aware_null_fraction_different_from_observed": 0.9995913395418288,
   "annotation_source": "rank-blind Reactome signatures frozen before score inspection",
-  "interpretation": "Known-target-anchored functional concordance of ranked candidates; not target engagement, pathway activity, new-target validation or causal mechanism."
+  "interpretation": "Functional concordance of ranked candidates with known-target-anchored gene sets. Validation of new targets, target engagement, pathway activity and causal mechanisms require independent experimental assessment."
 }

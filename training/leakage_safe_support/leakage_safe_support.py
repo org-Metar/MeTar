@@ -1995,7 +1995,7 @@ def write_method_lock(extra: Optional[dict[str, Any]] = None) -> None:
         "round": "round243_leakage_safe_unseen_cell_support_adapter",
         "created_at": "2026-05-19",
         "seed": SEED,
-        "scope": "leakage-safe unseen-cell support adaptation and diagnostic recomputation only; manuscript, figures, legends and source-data workbook are not modified",
+        "scope": "Support-conditioned prediction in held-out cell lines with separate training, validation and evaluation compounds",
         "phase1_closed_set_before_unseen_target": {
             "architecture_source": "Round211",
             "input_features": 978,
@@ -2061,12 +2061,12 @@ def write_audit(extra_lines: Optional[list[str]] = None) -> None:
                 existing_extra.append(line)
     merged_extra = list(dict.fromkeys(existing_extra + (extra_lines or [])))
     lines = [
-        "# Round243 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
-        "## Scope guard",
+        "## Outputs",
         "",
-        "- This round is non-destructive and writes only inside the Round243 directory.",
-        "- Manuscript text, figures, legends and source-data workbook are intentionally untouched.",
+        "- Model outputs and evaluation records are written to the selected output directory.",
+        "- Outputs contain model predictions, evaluation metrics and input-split records.",
         "",
         "## Phase 1 denominator",
         "",
@@ -2093,7 +2093,7 @@ def write_audit(extra_lines: Optional[list[str]] = None) -> None:
     if merged_extra:
         lines.extend(merged_extra)
     else:
-        lines.append("- No phase has been run yet; this file is the bootstrap audit.")
+        lines.append("- No phase results are available.")
     audit_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -2121,13 +2121,12 @@ def write_round243_report() -> None:
         ]
         cols = [c for c in show_cols if c in df.columns]
         table_text = df[cols].tail(30).to_string(index=False)
-    text = f"""# Round243 leakage-safe unseen-cell support adaptation
+    text = f"""# Support-conditioned prediction in held-out cell lines
 
 ## Scope
 
-This round rebuilds the cell-generalization path under an explicit leakage-safe
-protocol. It does not modify manuscript text, figures, legends, or the
-source-data workbook.
+The model uses separate training, model-selection and held-out evaluation
+cell lines to evaluate support-conditioned prediction in new cell lines.
 
 ## Method boundary
 
@@ -2145,7 +2144,7 @@ diagnostic only.
 {table_text}
 ```
 """
-    (ROUND_ROOT / "round243_result_report_zh.md").write_text(text, encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text(text, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:

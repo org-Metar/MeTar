@@ -655,11 +655,11 @@ def write_report(metrics: pd.DataFrame, history: pd.DataFrame, audits: list[dict
     cols = ["variant", "target_mode", "split", "evaluation_family", "Hit@10", "MeanAP", "AUROC", "NDCG@10", "top5pct_success", "exclude_seen_labels", "best_epoch"]
     table = shown[[c for c in cols if c in shown.columns]].to_string(index=False)
     val = metrics[metrics["split"].eq("holdout_val")][[c for c in cols if c in metrics.columns]].to_string(index=False)
-    text = f"""# Round230 scratch MLP + MeTar target tower report
+    text = f"""# Randomly initialized sample encoder and target tower
 
 ## Scope
 
-This round does not use the A01 sample encoder. The sample side is a newly initialized residual MLP trained on PC3 h07 data. Target-side variants use MeTar h07 PPI target embeddings or raw PPI gene representations plus a MeTar-style target tower.
+The sample side is a newly initialized residual MLP trained on PC3 h07 data rather than an A01 sample encoder. Target-side variants use MeTar h07 PPI target embeddings or raw PPI gene representations plus a MeTar-style target tower.
 
 ## Test results
 
@@ -679,7 +679,7 @@ This round does not use the A01 sample encoder. The sample side is a newly initi
 {json.dumps(audits, indent=2)}
 ```
 """
-    (ROUND_ROOT / "round230_result_report_zh.md").write_text(text, encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text(text, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
@@ -749,7 +749,7 @@ def main() -> None:
     }
     (ROUND_ROOT / "method_lock.json").write_text(json.dumps(method, indent=2), encoding="utf-8")
     (QA / "leakage_and_alignment_audit.md").write_text(
-        f"""# Round230 audit
+        f"""# Leakage and alignment audit
 
 - No A01 sample encoder checkpoint is loaded.
 - Sample encoder is newly initialized for every run.

@@ -63,7 +63,7 @@ def validate_gene_order(names: list[str]) -> None:
     if len(names) != 62710 or digest != ORDERED_VAR_SHA256:
         raise ValueError(
             "Raw var_names differ from the archived 62,710-gene ordered schema; "
-            "refusing to guess or reorder the SVD input columns"
+            "the saved SVD projection requires the original column order"
         )
 
 

@@ -34,7 +34,7 @@ preferred-citation:
   title: >-
     Generalizable phenotype-inverse identification of compound targets from
     perturbational omics
-  journal: Submitted
+  notes: "Manuscript submitted for publication."
   year: 2026
 abstract: >-
   MeTar ranks candidate drug targets from perturbation-response data. The

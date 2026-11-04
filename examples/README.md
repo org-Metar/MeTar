@@ -1,8 +1,8 @@
 # Small prediction examples
 
-These are real, small computational examples from the public datasets used by
-MeTar. They are ready for the prediction interfaces; they are not random format
-fixtures. Download the pretrained models as described in the main
+These small computational examples come from the public datasets used by
+MeTar and are prepared for its prediction interfaces. Download the pretrained
+models as described in the main
 [README](../README.md) and run commands from the repository root. The complete
 example inputs occupy less than 1 MB.
 
@@ -26,11 +26,11 @@ lines in that evaluation. Each query file contains `BRD-A05186015` and
 `BRD-A15297126`; support compounds and query compounds are disjoint. Responses
 were aggregated by compound and cell line, then standardized using the mean and
 standard deviation of the model's meta-training response table. The values are
-already prepared: do not standardize these example files again.
+already standardized and can be passed directly to prediction.
 
 `bulk_query.npz` is the same HELA input as `cross_cell/hela/query.npz`. Its bulk
-command demonstrates the 668-target interface; it is not an example of a
-within-training-cell evaluation. For your own data, the [bulk
+command demonstrates the 668-target interface using a held-out cell line.
+For your own data, the [bulk
 guide](../docs/prediction/bulk.md) explains the required feature order and scale.
 
 Both `query.npz` and `support.npz` have `x` (float32, rows × 978) and `query_ids`
@@ -55,8 +55,8 @@ The A549 example is a subset of the processed Tahoe X128 data used for the
 reported single-cell analysis. It contains `5-fluorouracil` and `9-ing-41`, with
 300 cells sampled per compound. The NPZ contains `x` (float32, 600 × 128) and
 `query_ids`; here the compound identifier repeats for all cells belonging to
-the same query. These are projection coordinates, not 128 gene counts. Do not
-project them again. Use `--max-cells 0` to use all supplied cells. For raw counts,
+the same query. Pass these projection coordinates directly to prediction.
+Use `--max-cells 0` to use all supplied cells. For raw counts,
 follow the saved-projection preparation in the [single-cell
 guide](../docs/prediction/single-cell.md).
 
@@ -67,22 +67,22 @@ ProteomicsDB-derived evaluation table. Only `query_id` and the 2,000 feature
 columns required by the released preprocessor are retained. These values are
 the input abundance measurements, before standardization. Pass the table
 directly to `metar predict proteomics`; the saved preprocessing state performs
-the transformation. Its selected state uses `log1p=false`; do not add a log
-transform. Target labels are not included.
+the transformation. Its selected state uses `log1p=false`, so the input
+abundances are supplied without a log transform. Target labels are not included.
 
 ### Consensus scores
 
 `hela_scores.tsv` and `hcc515_scores.tsv` contain previously computed direct
 predictions for the two query compounds supplied above. Each file contains all
 668 candidate scores for each compound, with columns `query_id`, `cell_line`,
-`target`, `score` and `candidate_count`. These are genuine model outputs, not
-experimental measurements or an independent accuracy evaluation. They make the
-consensus command runnable without first performing two predictions. You can
-also generate fresh complete scores from the two cell-line inputs; do not use
-Top-k-truncated score tables for consensus.
+`target`, `score` and `candidate_count`. These are model scores rather than
+experimental measurements. Use them to run consensus directly, or generate
+fresh complete scores from the two cell-line inputs with `--top-k 0`. Accuracy
+evaluation uses the separate protocols in the
+reproduction guide.
 
 The dataset placement and preparation requirements are listed in the
-[data guide](../docs/data.md). These examples contain no PDF-3 or wet-lab
-material. Their purpose is to show the input and output workflow; the paper's
-evaluation protocols and numerical reproduction are documented separately in
+[data guide](../docs/data.md). Their purpose is to show the input and output
+workflow; the paper's evaluation protocols and numerical reproduction are
+documented separately in
 the [reproduction guide](../docs/reproduction.md).

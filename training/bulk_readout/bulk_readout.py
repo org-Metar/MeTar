@@ -1744,29 +1744,6 @@ def run_all(args: argparse.Namespace) -> None:
         run_readout_sweep(args)
         return
     raise RuntimeError("Round211 is readout-only. Use --readout-sweep or --readout-only; KG pretraining is intentionally disabled.")
-    (ROOT / "task_plan.md").write_text(
-        "\n".join(
-            [
-                "# Round210 Dim-256 KG Checkpoint Sweep Plan",
-                "",
-                "## Goal",
-                "Retune dim=256 KG checkpoint coverage using Round205 successful checkpoint-sweep discipline, then run selected readout configurations.",
-                "",
-                "## Fixed Evaluation",
-                "- PC3 drug-mean",
-                "- 668 targets",
-                "- target anchors use graph-owned Protein/TF/RBP/mRNA entities before fallback",
-                "- train new process-only dim=256 KG checkpoints at 5/10/15/20/25/30/35/40",
-                "- KG is retrained in this round; downstream split/evaluation stay fixed",
-                "- downstream readout architecture remains Round196-style diagonal target-delta readout",
-                "- use the readout settings that Round208 showed were informative: rstrong_map, rstrong_hit10, rbase_hit10",
-                "",
-                "## Status",
-                "Running automated Round210 256-dim KG checkpoint sweep on server.",
-            ]
-        ) + "\n",
-        encoding="utf-8",
-    )
     r176 = load_round176_module()
     _landmarks, labels, rows, x, y = r176.load_response()
     data = split_data(rows, x, y, r176)

@@ -1102,7 +1102,7 @@ def paired_delta_vs_noadapt(cell_metrics: pd.DataFrame) -> pd.DataFrame:
 
 def write_audit(data_audit: dict[str, Any]) -> None:
     lines = [
-        "# Round252 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
         "- Scope: 668-label closed-set Round247-style episodic query-gated meta-learning.",
         "- Round240 full-space target-side is out of scope.",
@@ -1186,7 +1186,7 @@ def write_report(metrics: pd.DataFrame, by_bin: pd.DataFrame, deltas: pd.DataFra
     ].to_csv(sep="\t", index=False).strip() if len(deltas) else "No paired deltas."
     rescue_text = rescue.to_csv(sep="\t", index=False).strip() if len(rescue) else "No rescue/loss metrics."
     lines = [
-        "# Round252 optimized Round247-style episodic query-gated meta-learning",
+        "# Episodic query-gated cross-cell adaptation",
         "",
         "## Main official unseen metrics",
         "",
@@ -1212,22 +1212,22 @@ def write_report(metrics: pd.DataFrame, by_bin: pd.DataFrame, deltas: pd.DataFra
         rescue_text,
         "```",
         "",
-        "## Interpretation guardrails",
+        "## Evaluation protocol",
         "",
-        "- Official unseen cells are final evidence only.",
-        "- Main headline remains drug-mean; profile-level is diagnostic.",
-        "- Support-bin metrics are pre-registered and must be compared against no-adapt on the same denominator.",
-        "- QGate-MAML hybrid is a comparison branch; EpiQGate is the primary Round247-style meta-learning branch.",
+        "- Official held-out cell lines provide the final evaluation.",
+        "- Primary results use drug-mean metrics; profile-level metrics are additional diagnostics.",
+        "- Support-bin comparisons use the same evaluation units for adapted and direct predictions.",
+        "- EpiQGate is the primary meta-learning method; QGate-MAML is a comparison variant.",
     ]
-    (ROUND_ROOT / "round252_result_report_zh.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    (SOURCE / "round252_result_report_zh.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (SOURCE / "training_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def write_round252_optimization_report(summary: pd.DataFrame, metrics: pd.DataFrame, by_bin: pd.DataFrame, deltas: pd.DataFrame) -> None:
     lines = [
-        "# Round252 EpiQGate pseudo-unseen sweep report",
+        "# EpiQGate configuration comparison",
         "",
-        "本轮只优化 Round251 EpiQGate 主方法。配置选择只使用 pseudo-unseen validation；official unseen 只在选择后作为最终评估。",
+        "EpiQGate configurations are selected using pseudo-unseen validation cell lines. The selected configuration is then evaluated on the official held-out cell lines.",
         "",
         "## Pseudo-unseen sweep ranking",
         "",
@@ -1305,8 +1305,8 @@ def write_round252_optimization_report(summary: pd.DataFrame, metrics: pd.DataFr
     lines.append(delta_rows[[c for c in delta_cols if c in delta_rows.columns]].to_csv(sep="\t", index=False).strip())
     lines.append("```")
     text = "\n".join(lines) + "\n"
-    (ROUND_ROOT / "round252_optimization_report_zh.md").write_text(text, encoding="utf-8")
-    (SOURCE / "round252_optimization_report_zh.md").write_text(text, encoding="utf-8")
+    (ROUND_ROOT / "configuration_summary.md").write_text(text, encoding="utf-8")
+    (SOURCE / "configuration_summary.md").write_text(text, encoding="utf-8")
 
 
 def run_training(args: argparse.Namespace, device: torch.device) -> None:

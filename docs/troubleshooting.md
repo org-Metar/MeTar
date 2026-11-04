@@ -36,13 +36,13 @@ and placed in the selected `--directory` before rerunning without `--download`.
 
 | Symptom | Resolution |
 |---|---|
-| Wrong feature count or missing landmark columns | Supply the correct 978-feature schema with `--feature-order` for bulk tables. Exclude numeric metadata such as dose/time. Check names, order and the workflow's preprocessing, rather than padding or dropping arbitrary genes. |
-| A bulk input passes `doctor` but results differ from expectations | `doctor` validates files, dimensions and finite values; it cannot identify whether the data use training-matched normalization. Check the [bulk preparation contract](usage.md#1-bulk-expression-668-targets). |
-| A raw single-cell H5AD has more than 128 columns | Apply the saved [Tahoe X128 projection](usage.md#prepare-x128-from-raw-tahoe-plates) before inference. Selecting 128 genes or fitting a new SVD does not reproduce the trained coordinates. |
-| The Tahoe preparer rejects the gene order or sparse encoding | It requires the original ordered 62,710-gene Tahoe schema and CSR `.X`. Check that the original plate and its expression representation were retained; the supplied preparer does not align arbitrary single-cell datasets. |
-| Proteomics features are missing | Use the feature identifiers required by the saved preprocessing JSON and the training-compatible abundance representation. Do not apply its saved log transform or standardization a second time. |
+| Wrong feature count or missing landmark columns | Supply the correct 978-feature schema with `--feature-order` for bulk tables. Keep numeric metadata such as dose/time separately, and match feature names, order and preprocessing to the selected workflow. |
+| A bulk input passes `doctor` but results differ from expectations | Check training-matched normalization separately from `doctor`'s file, dimension and finite-value checks. Follow the [bulk preparation requirements](usage.md#1-bulk-expression-668-targets). |
+| A raw single-cell H5AD has more than 128 columns | Apply the saved [Tahoe X128 projection](usage.md#prepare-x128-from-raw-tahoe-plates) before inference to preserve the trained coordinates. |
+| The Tahoe preparer rejects the gene order or sparse encoding | Use the original ordered 62,710-gene Tahoe schema and CSR `.X`. Independent gene schemas require a compatible representation and encoder. |
+| Proteomics features are missing | Use the feature identifiers required by the saved preprocessing JSON and the training-compatible abundance representation. Supply values before the saved log transform and standardization. |
 | An input contains nonfinite values | Find the affected rows/features and correct their source preparation before bulk/single-cell prediction. |
-| PDF-3 query preparation says the output already exists | Reuse that prepared CSV, or choose a new output filename. The preparer deliberately does not overwrite it. |
+| PDF-3 query preparation says the output already exists | Reuse that prepared CSV, or choose a new output filename. |
 
 ## Adaptation and consensus
 
@@ -56,8 +56,8 @@ same query, support and label arguments to inspect the input files.
 For consensus, retain full long-format predictions using `--top-k 0`.
 Every input must use the same compound IDs and complete candidate set. Errors
 about truncated vectors, duplicate drug-cell-target scores, or different target
-spaces require fixing those input tables; changing the aggregation method will
-not fix them. If no compound meets `--min-cell-lines`, check matching IDs and
+spaces require correcting the corresponding input tables. If no compound
+meets `--min-cell-lines`, check matching IDs and
 cell-line labels. See the [consensus example](usage.md#6-consensus-across-cell-lines).
 
 ## Memory and result comparison
@@ -69,7 +69,7 @@ load exceeds memory. `--max-cells` controls prediction-time sampling, not the
 initial H5AD load.
 
 For numerical differences between systems, use the documented
-[result comparison workflow](reproduction.md#numerical-and-preparation-limits).
+[result comparison workflow](reproduction.md#numerical-comparability-and-input-preparation).
 Fresh predictions, archived scores and the supplied computational plot tables
 serve different purposes. Training/reproduction workspace scripts that call
 Bash should be run in Linux or WSL; see [training](training.md) and

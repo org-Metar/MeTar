@@ -1,9 +1,8 @@
 # Consensus across cell lines
 
-Combine predictions for the same compound across multiple cell lines. This is
-post-prediction aggregation: it uses score tables and does not load, train or
-adapt a model. First generate complete predictions for the same candidate set
-in every cell line.
+Combine predictions for the same compound across multiple cell lines using
+post-prediction aggregation of score tables. First generate complete
+predictions for the same candidate set in every cell line.
 
 ## Run the bundled score example
 
@@ -55,14 +54,13 @@ columns. Other output columns may remain.
 
 Use one row per query/cell-line/target combination. Duplicates, missing IDs and
 nonfinite scores are rejected. Every query/cell-line pair must contain the same
-complete target set. Do not mix 668- and 16,583-target outputs, top-k shortlists
-or wide tables. The `candidate_count` column helps detect truncation; deleting
-it does not turn a shortlist into a complete score vector.
+complete target set in long format. Combine 668-target outputs with each other,
+or 16,583-target outputs with each other, before applying top-k filtering. Keep
+the `candidate_count` column to support truncation checks.
 
-Use consistent compound identities and conditions. Assigning one ID to
-different compounds combines unrelated responses; different IDs for the same
-compound prevent their aggregation. Changing column names does not make scores
-from different model settings equivalent.
+Use consistent compound identities and conditions, with the same ID for a
+matched compound in each cell line. All inputs should use the same model
+setting and response preparation.
 
 ## Choose the aggregation
 

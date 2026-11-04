@@ -1,0 +1,15 @@
+include CITATION.cff LICENSE THIRD_PARTY_NOTICES.md README.md uv.lock
+recursive-include docs *.md *.png *.svg
+recursive-include manifests *.json *.yaml
+recursive-include examples *.md *.npz *.npy *.tsv
+recursive-include scripts *.py
+recursive-include tools *.py *.sh
+recursive-include tests *.py
+recursive-include training *.py *.json
+recursive-include analysis *.py
+recursive-include figures *.py *.json *.yaml *.txt
+recursive-include data/plot_sources *.tsv *.json
+recursive-include preprocessing *.py *.ipynb
+recursive-include comparators *.py *.md LICENSE
+recursive-include vendor *.py *.md *.toml
+global-exclude __pycache__ *.py[cod]

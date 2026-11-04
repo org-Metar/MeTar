@@ -788,7 +788,7 @@ def write_protocol_audit(args: argparse.Namespace, device: torch.device) -> dict
 
 def write_audit_md(data_audit: dict[str, Any]) -> None:
     lines = [
-        "# Round246 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
         "- Scope: 668-label closed-set seen-target plus cross-cell support adaptation only.",
         "- Phase 2 full-space target side is out of scope.",
@@ -980,10 +980,10 @@ def write_report() -> None:
             if len(oracle):
                 oracle_row = oracle.iloc[0]
                 oracle_text = (
-                    f"\nOfficial-unseen oracle best diagnostic only: `{oracle_row['variant_core']}` "
+                    f"\nOfficial-test-selected oracle diagnostic: `{oracle_row['variant_core']}` "
                     f"Hit@10={oracle_row['Hit@10']:.6f}, MeanAP={oracle_row['MeanAP']:.6f}, "
                     f"NDCG@10={oracle_row['NDCG@10']:.6f}, AUROC={oracle_row['AUROC']:.6f}. "
-                    "This row must not be used as protocol-selected evidence."
+                    "This diagnostic selects on test performance; the protocol result above selects on validation performance."
                 )
             best_text = (
                 f"Protocol-selected by pseudo-unseen validation: `{protocol['variant_core']}`. "
@@ -994,7 +994,7 @@ def write_report() -> None:
             )
         else:
             best_text = "No protocol-selection summary row yet."
-    text = f"""# Round246 joint seen-target cross-cell meta-learning report
+    text = f"""# Bulk target prediction and cross-cell training
 
 ## Scope
 
@@ -1012,15 +1012,15 @@ Round243 two-step official-unseen support-adapt Hit@10 reference: `{BASE_REFEREN
 {table_text}
 ```
 
-## Interpretation guardrails
+## Evaluation protocol
 
-- Official unseen cells are final main evidence only.
-- Pseudo-unseen cells are model selection only.
-- Seen-cell rows are diagnostics only.
+- Official held-out cell lines provide the final evaluation.
+- Pseudo-unseen cell lines are used for model selection.
+- Training-cell results are additional diagnostics.
 - The selected checkpoint is a whole-model checkpoint; readout and support adapter states come from the same epoch.
 """
-    (ROUND_ROOT / "round246_result_report_zh.md").write_text(text, encoding="utf-8")
-    (SOURCE / "round246_result_report_zh.md").write_text(text, encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text(text, encoding="utf-8")
+    (SOURCE / "training_summary.md").write_text(text, encoding="utf-8")
 
 
 def run_training(args: argparse.Namespace, device: torch.device) -> None:

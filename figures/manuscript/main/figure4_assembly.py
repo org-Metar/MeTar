@@ -17,7 +17,7 @@ def sha(path):
 
 def add_legend(page):
     font_path = Path(os.environ["METAR_PLOT_ARIAL"])
-    page.insert_font(fontname="ReviewArial", fontfile=str(font_path))
+    page.insert_font(fontname="FigureArial", fontfile=str(font_path))
     font = pymupdf.Font(fontfile=str(font_path))
     fs = 8.0
     gap = 3.5
@@ -35,7 +35,7 @@ def add_legend(page):
         # Only the text glyphs are covered and redrawn at the adjusted baseline.
         text_rect = pymupdf.Rect((x + 4.7) * MM, (old_text_y - 2.6) * MM, (x + 5 + font.text_length(label, fontsize=fs) / MM + 0.8) * MM, (old_text_y + 0.9) * MM)
         page.draw_rect(text_rect, color=None, fill=(1, 1, 1), overlay=True)
-        page.insert_text(((x + 5) * MM, text_y * MM), label, fontname="ReviewArial", fontsize=fs, color=(38/255, 50/255, 56/255))
+        page.insert_text(((x + 5) * MM, text_y * MM), label, fontname="FigureArial", fontsize=fs, color=(38/255, 50/255, 56/255))
     return {"labels": labels, "font_size_pt": fs, "icon_y_mm": icon_y, "old_text_y_mm": old_text_y, "new_text_y_mm": text_y, "text_baseline_shift_mm": -0.55, "icons_unchanged": True}
 
 def main():

@@ -28,12 +28,11 @@ An existing prediction file at a separate destination can be replaced.
 
 ## Start with the bundled examples
 
-Each guide starts with a command using real prepared inputs included in
+Each guide starts with a command using prepared inputs included in
 [`examples/`](../examples/README.md). Download the model archive for model-based
 prediction; consensus can use the supplied complete score tables directly.
-These small examples demonstrate the interfaces, rather than replacing the
-full evaluation datasets. Follow the same guide to replace them with your own
-data.
+These small examples demonstrate the interfaces. Follow the same guide to
+replace them with your own data, or use the full datasets for evaluation.
 
 <a id="start-with-a-real-pdf-3-query"></a>
 
@@ -53,7 +52,7 @@ and 668-target branch have distinct preprocessing contracts.
 ### Single-cell tables, NPZ and H5AD
 
 Use one cell per row, 128 saved X128 coordinates and a group ID for the query.
-The coordinates are not 128 selected genes. See the
+Use the saved projection coordinates, with the formats described in
 [single-cell input formats](prediction/single-cell.md#replace-the-input-with-your-cells).
 
 ### Proteomics tables
@@ -67,8 +66,8 @@ The pretrained scorer ranks 668 supervised targets. Use the [bulk guide](predict
 for its command, bundled example, feature order and response-scale
 requirements. Ordinary LINCS-style responses require the training
 drug-cell-mean standardization; its fitted mean/std state is not separately
-released. The documented PDF-3 preparation is a separate application, not a
-general raw-log2FC rule.
+released. The documented PDF-3 preparation follows its own application
+procedure; use model-matched normalization for independent assays.
 
 ## 2. Genome-wide prediction
 
@@ -87,7 +86,7 @@ Use `metar predict cross-cell --mode direct` with prepared responses.
 
 Use `--mode adapted` with separate same-cell-line support responses and known
 support targets. [Input formats and command](prediction/cross-cell.md#2-use-reference-compounds-from-the-new-cell-line).
-The trained adapter acts at inference; it does not retrain the model.
+The trained adapter acts at inference with fixed model parameters.
 
 ## 4. Single-cell prediction
 
@@ -147,9 +146,9 @@ metar doctor --scenario single-cell --cell-line A549 --input inputs/a549_x128.h5
 metar doctor --scenario proteomics --input inputs/proteomics_queries.tsv
 ```
 
-Doctor checks files, structure and dimensions. It cannot establish that an
-assay uses training-compatible preparation or feature identities from shape
-alone. Checks may read the full single-cell matrix. Missing model files usually
+Doctor checks files, structure and dimensions. Check feature identities and
+preparation against the selected workflow's input requirements. Checks may
+read the full single-cell matrix. Missing model files usually
 indicate an incomplete download or incorrect
 [`METAR_ARTIFACT_ROOT`](data.md#set-the-artifact-root).
 

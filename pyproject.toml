@@ -34,6 +34,8 @@ metar = "metar.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["metar", "metar.*"]
+namespaces = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

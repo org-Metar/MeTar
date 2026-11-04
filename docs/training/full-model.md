@@ -9,8 +9,8 @@ For a smaller change, start with [the training index](../training.md).
 
 Download the model/schema archive and `training_inputs.tar.gz`, then place
 the [prepared public inputs](../data.md#place-separately-obtained-public-inputs).
-The model archive supplies protocol and gene-order records; this workflow
-does not copy its trained checkpoint or target-vector values.
+The model archive supplies protocol and gene-order records. This workflow
+learns new checkpoint parameters and target-vector values.
 
 | Dataset or record | Required files under the artifact root |
 |---|---|
@@ -39,8 +39,8 @@ python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../me
 python scripts/prepare_training.py --artifacts ../metar_artifacts --output ../metar-training --stage all
 ```
 
-Omitting `--stage` also selects `all`. Do not add `--reuse-pretrained` here:
-the full run creates its own upstream parameters. Preparation copies affected
+Omitting `--stage` also selects `all`. Run without `--reuse-pretrained` to create
+the upstream parameters from scratch. Preparation copies affected
 inputs when symlinks are unavailable; add `--copy-inputs` to copy all inputs.
 The input store and original code are kept separate from mutable training
 outputs. See [training setup](../training.md) for the fallback notice and marker.
@@ -75,32 +75,30 @@ Use `--dry-run` to display the complete command sequence. Dependency checks
 for downstream stages will fail before their upstream checkpoints exist;
 check the first stage with `--stage gene-prior --check-only` initially.
 Individual stage commands let you continue from completed upstream outputs
-in the same workspace. Do not rerun an already completed stage over its
-selected checkpoint; use a fresh workspace for another training run.
+in the same workspace. Use a fresh workspace when repeating a completed stage.
 
 ## Your own training dataset
 
 This command selects the paper's data contracts, architectures, task
-partitions, seeds and hyperparameters. It is useful for reproducible
-retraining. It is not an automatic trainer for an unrelated matrix of
-arbitrary dimensions.
+partitions, seeds and hyperparameters. New datasets require the corresponding
+schemas and protocol configuration.
 
 For compatible replacements, follow the exact schemas in the
-[cell-line](cell-line-adapter.md#input-schema) and
-[single-cell](single-cell.md) and [proteomics](proteomics.md) guides. Replace private workspace data,
-matching labels, compatibility copies and split records together. Rebuild
+[cell-line](cell-line-adapter.md#input-schema),
+[single-cell](single-cell.md) and [proteomics](proteomics.md) guides. Replace
+workspace data, matching labels, compatibility copies and split records together. Rebuild
 derived caches when their source data change; the released bulk cache
-builder's source hashes and audit counts must also be updated for a new
-dataset, as described in the [target-space guide](target-space.md#input-and-dataset-changes).
-Fit preprocessing on the
-training subset and retain it for validation, test and future prediction.
+builder's source hashes and expected dataset counts must also be updated for a
+new dataset, as described in the [target-space guide](target-space.md#input-and-dataset-changes).
+Fit preprocessing on the training subset and retain it for validation, test
+and future prediction.
 
 A new feature dimension, target set or cell-line panel requires coordinated
 source/protocol changes, including the selected count checks and held-out
-evaluation definitions. Do not relabel a new dataset as the published split
-or compare its metrics as an exact reproduction of the paper.
+evaluation definitions. Report such changes as a new experiment, with its own
+dataset and evaluation protocol.
 
-## Results
+## Output files
 
 All training logs, selected checkpoints and scientific outputs remain in the
 new workspace. Interface copies are under `checkpoints/selected/`.
@@ -108,14 +106,9 @@ The full-space target vectors and proteomics preprocessor are generated
 anew. Their release-compatible filenames are stable entry points; selection
 records contain the actual epoch and validation results of this run.
 
-The selected nine-stage chain has completed on Linux with an NVIDIA GPU,
-Python 3.11 and PyTorch 2.14.1+cu126, using a fresh cache and individually
-invoked public stage commands without pretrained parameter reuse. The bulk
-and genome-wide primary metrics remained close to the preceding retraining
-run. Read the new selection records for the exact results and evaluation units.
-
-CPU compatibility is covered by the test suite, real prediction checks and
-small single-cell/proteomics optimizer runs; the complete normal-budget chain
-has not been run end to end on CPU. Preparation checks alone do not establish
-successful training or numerical reproduction. For released-score evaluation
-and figure generation, see [paper reproduction](../reproduction.md).
+For the complete training sequence, use Linux with an NVIDIA GPU and the
+environment described in [installation](../installation.md#nvidia-gpu). CPU
+execution is available for compatible individual stages and can require
+substantially longer runtimes. Use each run's selection records for its exact
+metrics and evaluation units. For released-score evaluation and figure
+generation, see [paper reproduction](../reproduction.md).

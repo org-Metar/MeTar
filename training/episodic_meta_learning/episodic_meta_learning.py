@@ -1145,7 +1145,7 @@ def maml_configs(args: argparse.Namespace) -> list[dict[str, Any]]:
 
 def write_audit(data_audit: dict[str, Any], args: argparse.Namespace) -> None:
     lines = [
-        "# Round250 leakage and denominator audit",
+        "# Leakage and denominator audit",
         "",
         "- Scope: 668-label closed-set cross-cell episodic meta-learning versus current baselines.",
         "- Round240 full-space target-side is out of scope.",
@@ -1218,7 +1218,7 @@ def write_report(metrics: pd.DataFrame, by_bin: pd.DataFrame, deltas: pd.DataFra
         & (deltas["adapt_support_size"].eq(32))
     ].to_csv(sep="\t", index=False).strip() if len(deltas) else "No paired deltas."
     lines = [
-        "# Round250 stable episodic meta-learning tuning comparison",
+        "# Episodic meta-learning configuration comparison",
         "",
         "## Main official unseen metrics",
         "",
@@ -1238,14 +1238,14 @@ def write_report(metrics: pd.DataFrame, by_bin: pd.DataFrame, deltas: pd.DataFra
         delta_text,
         "```",
         "",
-        "## Interpretation guardrails",
+        "## Evaluation protocol",
         "",
-        "- Use official unseen cells as final evidence only.",
-        "- Treat support-size bins as descriptive stratification, not a new model-selection rule.",
-        "- If gains concentrate at Hit@50 / TopK-style metrics, describe candidate-list enrichment rather than uniform target recovery.",
+        "- Official held-out cell lines provide the final evaluation.",
+        "- Support-size bins summarize results by available reference data; model selection uses the validation cell lines.",
+        "- Hit@K reports target recovery within the first K ranked candidates; each K is reported separately.",
     ]
-    (ROUND_ROOT / "round250_result_report_zh.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    (SOURCE / "round250_result_report_zh.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (ROUND_ROOT / "training_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (SOURCE / "training_summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def run_audit(args: argparse.Namespace, device: torch.device) -> None:
